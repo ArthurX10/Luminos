@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Criar Anotação</title>
+</head>
+<body>
+    <h2>Nova Anotação</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="email" name="email" placeholder="Seu e-mail" required><br><br>
+        <input type="password" name="senha" placeholder="Sua senha" required><br><br>
+        <hr>
+        <input type="text" name="titulo" placeholder="Título da nota"><br><br>
+        <textarea name="conteudo" placeholder="Escreva aqui..."></textarea><br><br>
+        <button type="submit">Salvar Anotação</button>
+    </form>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

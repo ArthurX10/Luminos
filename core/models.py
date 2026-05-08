@@ -1,20 +1,24 @@
 from django.db import models
 
-# Create your models here.
-class Anotacoes(models.Model):
-    usuario = models.ForeignKey('Usuarios', models.DO_NOTHING)
-    titulo = models.CharField(max_length=150, blank=True, null=True)
-    conteudo = models.TextField()
-    data_criacao = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-
 class Usuarios(models.Model):
     email = models.CharField(unique=True, max_length=255)
     senha_hash = models.CharField(max_length=255)
-    data_criacao = models.DateTimeField(blank=True, null=True)
+    data_criacao = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'usuarios'
+
+    def __str__(self):
+        return self.email
+
+
+class Anotacoes(models.Model):
+    usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE) 
+    titulo = models.CharField(max_length=150, blank=True, null=True)
+    conteudo = models.TextField()
+    data_criacao = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'anotacoes'
