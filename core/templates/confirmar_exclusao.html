@@ -1,0 +1,8 @@
+<h2>Excluir Anotação</h2>
+<p>Você tem certeza que deseja excluir a nota: <strong>{{ nota.titulo }}</strong>?</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" style="background-color: red; color: white;">Sim, excluir</button>
+    <a href="{% url 'exibir_anotacoes' %}">Cancelar</a>
+</form>

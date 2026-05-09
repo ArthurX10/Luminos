@@ -1,0 +1,8 @@
+<h2>Criar Conta - Luminos</h2>
+<form method="POST">
+    {% csrf_token %}
+    <input type="email" name="email" placeholder="E-mail" required><br><br>
+    <input type="password" name="senha" placeholder="Senha" required><br><br>
+    <button type="submit">Cadastrar</button>
+</form>
+<a href="{% url 'login' %}">Já tenho conta</a>

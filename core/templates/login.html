@@ -1,0 +1,22 @@
+<div style="max-width: 300px; margin: auto; padding-top: 50px; text-align: center;">
+    <h2>Login - Luminos</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <input type="email" name="email" placeholder="E-mail" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <input type="password" name="senha" placeholder="Senha" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <button type="submit" style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer;">
+            Entrar
+        </button>
+    </form>
+
+    <p style="margin-top: 15px;">
+        Não tem uma conta? <a href="{% url 'cadastro' %}" style="color: #007bff; font-weight: bold;">Cadastre-se aqui</a>
+    </p>
+
+    {% if messages %}
+        {% for m in messages %}
+            <p style="color: red; font-size: 0.9em;">{{ m }}</p>
+        {% endfor %}
+    {% endif %}
+</div>

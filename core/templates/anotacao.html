@@ -1,24 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Criar Anotação</title>
-</head>
-<body>
-    <h2>Nova Anotação</h2>
-    <form method="POST">
-        {% csrf_token %}
-        <input type="email" name="email" placeholder="Seu e-mail" required><br><br>
-        <input type="password" name="senha" placeholder="Sua senha" required><br><br>
-        <hr>
-        <input type="text" name="titulo" placeholder="Título da nota"><br><br>
-        <textarea name="conteudo" placeholder="Escreva aqui..."></textarea><br><br>
-        <button type="submit">Salvar Anotação</button>
-    </form>
+<h2>Olá, {{ usuario.email }}! <a href="{% url 'logout' %}">Sair</a></h2>
 
-    {% if messages %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-    {% endif %}
-</body>
-</html>
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="titulo" placeholder="Título"><br><br>
+    <textarea name="conteudo" placeholder="Conteúdo"></textarea><br><br>
+    <button type="submit">Salvar Nota</button>
+</form>
+
+<hr>
+{% for nota in notas %}
+    <div style="border: 1px solid #ccc; margin-bottom: 10px; padding: 10px;">
+        <strong>{{ nota.titulo }}</strong> - <small>{{ nota.data_criacao }}</small>
+        <p>{{ nota.conteudo }}</p>
+        <a href="{% url 'editar_anotacao' nota.pk %}">Editar</a> | 
+        <a href="{% url 'excluir_anotacao' nota.pk %}">Excluir</a>
+    </div>
+{% endfor %}
