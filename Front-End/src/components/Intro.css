@@ -1,0 +1,70 @@
+.intro-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #000000;
+  padding: 60px;
+  box-sizing: border-box;
+}
+
+.intro-content {
+  width: 100%;
+  max-width: 500px;
+  color: #ffffff;
+}
+
+.quote-container {
+  font-family: 'Courier Prime', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quote-text {
+  font-size: 2.2rem;
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+.quote-author {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.quote-sub {
+  font-size: 1.6rem;
+  line-height: 1.4;
+}
+
+.btn-register-container {
+  margin-top: 40px;
+}
+
+.btn-register-intro {
+  background-color: #444444; 
+  color: #ffffff;
+  border: none;
+  padding: 10px 40px;
+  border-radius: 50px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-register-intro:hover {
+  background-color: #555555;
+  transform: scale(1.05);
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

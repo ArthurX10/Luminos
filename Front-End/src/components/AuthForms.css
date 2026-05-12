@@ -1,0 +1,105 @@
+.auth-box {
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3rem; /* Um pouco menor para caber melhor */
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+}
+
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Reduzido levemente */
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #ffffff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.form-group input {
+  padding: 16px;
+  background-color: #3a3a3a; /* Cinza do background do input */
+  border: none;
+  border-radius: 4px; /* Bordas levemente arredondadas */
+  color: #ffffff;
+  font-size: 1rem;
+  outline: none;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    margin: 10px 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #3a3a3a; /* Mesma cor dos inputs conforme a imagem */
+  color: #ffffff;
+  border: none;
+  padding: 16px;
+  border-radius: 4px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #4a4a4a;
+}
+
+.auth-footer-links {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+  color: #ffffff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.link-action {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.link-action:hover {
+  color: #979797;
+}
+
+/* change placeholder font*/
+.form-group input::placeholder{
+}
