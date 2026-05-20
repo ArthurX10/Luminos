@@ -1,6 +1,8 @@
 from django.db import models
 
 class Usuarios(models.Model):
+    nome = models.CharField(max_length=150, blank=True, null=True)
+    foto_url = models.TextField(blank=True, null=True)
     email = models.CharField(unique=True, max_length=255)
     senha_hash = models.CharField(max_length=255)
     data_criacao = models.DateTimeField(auto_now_add=True, blank=True, null=True)
