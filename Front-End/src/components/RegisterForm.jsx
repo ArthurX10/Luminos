@@ -1,4 +1,5 @@
 import './AuthForms.css';
+import api from '../api';
 import { useState } from 'react';
 
 function RegisterForm({ onSwitch }) {
@@ -7,10 +8,27 @@ function RegisterForm({ onSwitch }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword){
+      alert('Senhas não coincidem!');
+      return;
+    }
+
+    try {
+      await api.post('api/cadastro/', {email, password})
+      alert('Conta criada com sucesso!')
+      onSwitch();
+    } catch (error){
+      alert(error.response.data.error);
+    }
+  }
+
   return (
+  
     <div className="auth-box fade-in">
       <h1 className="auth-title">REGISTRO</h1>
-      <form className="auth-form" style={{ gap: '15px' }}> 
+      <form className="auth-form" style={{ gap: '15px' }} onSubmit = {handleRegister}> 
         <div className="form-group">
           <label htmlFor="username">NOME DE USUÁRIO:</label>
           <input 

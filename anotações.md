@@ -1,1 +1,1 @@
-criar um botão de skip na introdução, e ajeitar a bolinha do mouse 
+Erro no back - end, quando vai cadastrar
