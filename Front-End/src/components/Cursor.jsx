@@ -8,7 +8,7 @@ const Cursor = () =>{
             gsap.to("#cursor", {
                 x: clientX - 20 / 2,
                 y: clientY - 20 / 2,
-                duration: 1,
+                duration: 0.20,
                 delay: 0,
                 ease: "power.out",
                 
@@ -32,7 +32,7 @@ const Cursor = () =>{
             backgroundColor: 'white',
             borderRadius: '50%',
             pointerEvents: 'none',
-            zIndex: 9999,
+            zIndex: 99999,
         }}></div>
     )
 } 

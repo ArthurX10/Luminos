@@ -1,11 +1,9 @@
-import Cursor from "./components/Cursor";
-import AuthPage from "./Pages/AuthPage";
+import Rotes from "./Rotes";
 
 function App() {
   return (
     <>
-      <Cursor />
-      <AuthPage />
+      <Rotes/>
     </>
   )
 }
