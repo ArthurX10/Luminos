@@ -3,41 +3,66 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuarios, Anotacoes
-from .serializers import AnotacaoSerializer
-from .serializers import UsuarioSerializer
+from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas
+from .serializers import AnotacaoSerializer, UsuarioSerializer, EtiquetaSerializer, ElementoVisualSerializer, ConexaoLinhaSerializer, AnotacaoCompletaSerializer
+from django.contrib.auth.hashers import check_password, make_password
+
+# ROTAS DA API (REACT / FRONT-END)
 
 @api_view(['POST'])
 def api_cadastro(request):
     email = request.data.get('email')
-    senha = request.data.get('senha')
+    senha = request.data.get('senha') or request.data.get('password')
+    
+    if not email or not senha:
+        return Response({"error": "E-mail e senha são obrigatórios."}, status=status.HTTP_400_BAD_REQUEST)
+
     if Usuarios.objects.filter(email=email).exists():
         return Response({"error": "E-mail já cadastrado."}, status=status.HTTP_400_BAD_REQUEST)
-    usuario = Usuarios.objects.create(email=email, senha_hash=senha)
+        
+    usuario = Usuarios.objects.create(email=email, senha_hash=make_password(senha))
     return Response({"message": "Usuário criado!"}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 def api_login(request):
     email = request.data.get('email')
-    senha = request.data.get('senha')
+    senha = request.data.get('senha') or request.data.get('password')
+    print(f"DEBUG LOGIN -> Email recebido: {email} | Senha recebida: {senha}")
     try:
         usuario = Usuarios.objects.get(email=email)
-        if usuario.senha_hash == senha:
-            return Response({"message": "Login realizado", "user_id": usuario.id, "email": usuario.email}, status=status.HTTP_200_OK)
+        
+        if check_password(senha, usuario.senha_hash):
+            return Response({
+                "message": "Login realizado", 
+                "user_id": usuario.id, 
+                "email": usuario.email
+            }, status=status.HTTP_200_OK)
+            
         return Response({"error": "Senha incorreta."}, status=status.HTTP_401_UNAUTHORIZED)
     except Usuarios.DoesNotExist:
         return Response({"error": "Email não cadastrado."}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET', 'POST'])
+@api_view(['GET', 'POST'])
 def api_anotacoes(request, user_id):
     try:
         usuario = Usuarios.objects.get(id=user_id)
     except Usuarios.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        
     if request.method == 'GET':
+
+        etiqueta_id = request.query_params.get('etiqueta_id')
+        
         notas = Anotacoes.objects.filter(usuario=usuario).order_by('-data_criacao')
-        serializer = AnotacaoSerializer(notas, many=True)
+        
+        if etiqueta_id:
+            # O Django busca pela relação N:M usando o ID da tabela relacionada (Etiquetas)
+            notas = notas.filter(etiquetas__id=etiqueta_id)
+            
+        serializer = AnotacaoCompletaSerializer(notas, many=True)
         return Response(serializer.data)
+        
     if request.method == 'POST':
         serializer = AnotacaoSerializer(data=request.data)
         if serializer.is_valid():
@@ -51,16 +76,88 @@ def api_detalhe_anotacao(request, pk):
         nota = Anotacoes.objects.get(pk=pk)
     except Anotacoes.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+        
     if request.method == 'PUT':
         serializer = AnotacaoSerializer(nota, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
     if request.method == 'DELETE':
         nota.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+@api_view(['GET', 'PUT'])
+def api_perfil_usuario(request, user_id):
+    try:
+        usuario = Usuarios.objects.get(id=user_id)
+    except Usuarios.DoesNotExist:
+        return Response({"error": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = UsuarioSerializer(usuario)
+        return Response(serializer.data)
+
+    if request.method == 'PUT':
+        serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# --- ENDPOINTS DE ETIQUETAS ---
+    
+@api_view(['GET', 'POST'])
+def api_gerenciar_etiquetas(request, user_id):
+    if request.method == 'GET':
+        etiquetas = Etiquetas.objects.filter(usuario_id=user_id)
+        serializer = EtiquetaSerializer(etiquetas, many=True)
+        return Response(serializer.data)
+        
+    if request.method == 'POST':
+        data = request.data.copy()
+        data['usuario'] = user_id
+        serializer = EtiquetaSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def api_vincular_etiqueta(request, nota_id):
+    etiqueta_id = request.data.get('etiqueta_id')
+    try:
+        nota = Anotacoes.objects.get(pk=nota_id)
+        etiqueta = Etiquetas.objects.get(pk=etiqueta_id)
+        nota.etiquetas.add(etiqueta)
+        return Response({"message": "Etiqueta vinculada!"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# --- ENDPOINTS DO MAPA MENTAL / ESTRUTURAS ---
+
+@api_view(['POST'])
+def api_salvar_elemento_visual(request, nota_id):
+    data = request.data.copy()
+    data['anotacao'] = nota_id
+    serializer = ElementoVisualSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def api_salvar_conexao(request, nota_id):
+    data = request.data.copy()
+    data['anotacao'] = nota_id
+    serializer = ConexaoLinhaSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# VIEWS TRADICIONAIS (TEMPLATES DJANGO .HTML)
 
 def cadastro_view(request):
     if request.method == 'POST':
@@ -69,18 +166,20 @@ def cadastro_view(request):
         if Usuarios.objects.filter(email=email).exists():
             messages.error(request, "Este e-mail já está cadastrado.")
         else:
-            Usuarios.objects.create(email=email, senha_hash=senha)
+            # CORRIGIDO: Agora encripta a senha também pelo cadastro HTML
+            Usuarios.objects.create(email=email, senha_hash=make_password(senha))
             messages.success(request, "Cadastro realizado! Agora faça login.")
             return redirect('login')
     return render(request, 'cadastro.html')
 
 def login_view(request):
-    if request.method ==  'POST':
+    if request.method == 'POST':
         email_form = request.POST.get('email')
         senha_form = request.POST.get('senha')
         try:
             usuario = Usuarios.objects.get(email=email_form)
-            if usuario.senha_hash == senha_form:
+            # CORRIGIDO: Usando check_password para validar a senha criptografada
+            if check_password(senha_form, usuario.senha_hash):
                 request.session['usuario_id'] = usuario.id
                 return redirect('exibir_anotacoes')
             else:
@@ -93,17 +192,24 @@ def anotacoes_view(request):
     user_id = request.session.get('usuario_id')
     if not user_id:
         return redirect('login')
-    usuario = Usuarios.objects.get(id=user_id)
+        
+    # CORRIGIDO: Busca do usuário movida para depois da validação da sessão
+    usuario = get_object_or_404(Usuarios, id=user_id)
+    
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
         conteudo = request.POST.get('conteudo')
         Anotacoes.objects.create(usuario=usuario, titulo=titulo, conteudo=conteudo)
         messages.success(request, "Nota Salva")
+        
     notas = Anotacoes.objects.filter(usuario=usuario).order_by('-data_criacao')
     return render(request, 'anotacao.html', {'notas': notas, 'usuario': usuario})
 
 def excluir_anotacao(request, pk):
     user_id = request.session.get('usuario_id')
+    if not user_id:
+        return redirect('login')
+        
     nota = get_object_or_404(Anotacoes, pk=pk, usuario_id=user_id)
     if request.method == 'POST':
         nota.delete()
@@ -113,6 +219,9 @@ def excluir_anotacao(request, pk):
 
 def editar_anotacao(request, pk):
     user_id = request.session.get('usuario_id')
+    if not user_id:
+        return redirect('login')
+        
     nota = get_object_or_404(Anotacoes, pk=pk, usuario_id=user_id)
     if request.method == 'POST':
         nota.titulo = request.POST.get('titulo')
@@ -121,27 +230,6 @@ def editar_anotacao(request, pk):
         messages.success(request, "Nota atualizada!")
         return redirect('exibir_anotacoes')
     return render(request, 'editar.html', {'nota': nota})
-
-@api_view(['GET', 'PUT'])
-def api_perfil_usuario(request, user_id):
-    try:
-        usuario = Usuarios.objects.get(id=user_id)
-    except Usuarios.DoesNotExist:
-        return Response({"error": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
-
-    # 1. SCRIPT DO DAVID: SELECT nome, email, foto_url FROM ...
-    if request.method == 'GET':
-        serializer = UsuarioSerializer(usuario)
-        return Response(serializer.data)
-
-    # 2. SCRIPT DO DAVID: UPDATE Usuarios SET nome = %s, foto_url = %s ...
-    if request.method == 'PUT':
-        # O partial=True permite atualizar apenas o nome e a foto, sem exigir a senha
-        serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def logout_view(request):
     request.session.flush()
