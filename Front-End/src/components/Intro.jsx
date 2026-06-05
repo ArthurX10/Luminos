@@ -15,17 +15,11 @@ function Intro({ showSplitView, isRegister, onSwitchToRegister }) {
               </div>
             ) : (
               <div className="quote-container" style={{ textAlign: 'left' }}>
-                <h2 className="quote-text" style={{ textAlign: 'left' }}>
-                  Você já se sentiu... <br /> mentalmente exausto?
+                <h2 className="quote-text" style={{ textAlign: 'left', fontFamily: "'Courier Prime', monospace", fontWeight: 'normal', textTransform: 'none' }}>
+                  Sua mente já está cheia<br />demais.
+                  <br /><br />
+                  Deixa o resto com O<br />Luminos.
                 </h2>
-                <p className="quote-sub" style={{ textAlign: 'left', marginTop: '20px', fontWeight: 'bold' }}>
-                  Entre no luminous e <br /> clareie seu interior
-                </p>
-                <div className="btn-register-container" style={{ textAlign: 'left' }}>
-                  <button className="btn-register-intro" onClick={onSwitchToRegister}>
-                    REGISTRAR-SE
-                  </button>
-                </div>
               </div>
             )}
           </div>
