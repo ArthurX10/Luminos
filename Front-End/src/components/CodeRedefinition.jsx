@@ -5,8 +5,6 @@ function CodeRedefinition({ onSwitch }) {
   const [code, setCode] = useState(Array(6).fill(''));
   const [loading, setLoading] = useState(false);
   const inputRefs = useRef([]);
-
-  // Auto-focus the first input on load
   useEffect(() => {
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
@@ -14,7 +12,6 @@ function CodeRedefinition({ onSwitch }) {
   }, []);
 
   const handleChange = (value, index) => {
-    // Only allow digits
     const cleanedValue = value.replace(/[^0-9]/g, '');
     if (cleanedValue === '') {
       const newCode = [...code];
@@ -23,7 +20,6 @@ function CodeRedefinition({ onSwitch }) {
       return;
     }
 
-    // Handle paste of multiple characters (e.g. paste '123456')
     if (cleanedValue.length > 1) {
       const digits = cleanedValue.split('').slice(0, 6);
       const newCode = [...code];
@@ -33,10 +29,7 @@ function CodeRedefinition({ onSwitch }) {
           newCode[index + i] = digit;
         }
       });
-      
       setCode(newCode);
-      
-      // Focus on last pasted input or the 6th input
       const targetIndex = Math.min(index + digits.length - 1, 5);
       if (inputRefs.current[targetIndex]) {
         inputRefs.current[targetIndex].focus();
@@ -48,7 +41,6 @@ function CodeRedefinition({ onSwitch }) {
     newCode[index] = cleanedValue;
     setCode(newCode);
 
-    // Auto-focus next input if current one is filled
     if (index < 5) {
       inputRefs.current[index + 1].focus();
     }
@@ -57,13 +49,11 @@ function CodeRedefinition({ onSwitch }) {
   const handleKeyDown = (e, index) => {
     if (e.key === 'Backspace') {
       if (code[index] === '' && index > 0) {
-        // Clear previous input and focus it
         const newCode = [...code];
         newCode[index - 1] = '';
         setCode(newCode);
         inputRefs.current[index - 1].focus();
       } else {
-        // Clear current input
         const newCode = [...code];
         newCode[index] = '';
         setCode(newCode);
@@ -106,7 +96,7 @@ function CodeRedefinition({ onSwitch }) {
                 key={index}
                 id={`code-input-${index}`}
                 type="text"
-                maxLength={6} // Allow pasting long strings to handle it in onChange
+                maxLength={6}
                 value={digit}
                 onChange={(e) => handleChange(e.target.value, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
