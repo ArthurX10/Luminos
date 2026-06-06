@@ -1,0 +1,43 @@
+.home-container {
+    display: flex;
+    height: 100vh;
+}
+
+.home-content{
+    flex:1;
+    padding: 40px 60px;
+    overflow-y: auto;
+}
+
+.home-header{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.home-greeting{
+    display: flex;
+    font-size: 48px;
+    color: white;
+    text-align: center;
+}
+
+.home-section{
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.home-cards-grid{
+    display: grid;
+    gap: 20px;
+    flex-wrap:wrap;
+}
+
+.home-remiders{
+    display: flex;
+    background-color: #f5f5f5;
+    gap: 30px;
+    border-radius:12px;
+    padding: 25px;
+    color: #333;
+}

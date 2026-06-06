@@ -4,7 +4,7 @@ import logo from '../assets/Palmeiras_logo.svg.png'
 function Logo() {
   return (
     <div className="logo">
-      <img src={logo} alt="Logo do Luminos" style = {{width: '80px', height: '80px'}}/>
+      <img src={logo} alt="Logo do Luminos" style = {{width: '40px', height: '40px'}}/>
     </div>
   )
 }
