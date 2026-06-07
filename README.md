@@ -34,4 +34,3 @@ Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferent
 > *"A felicidade da sua vida depende da qualidade dos seus pensamentos."*
 >
 > **— Marco Aurélio**
-```
