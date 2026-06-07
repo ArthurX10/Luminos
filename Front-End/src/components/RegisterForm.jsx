@@ -18,7 +18,7 @@ function RegisterForm({ onSwitch }) {
     }
 
     try {
-      await api.post('api/cadastro/', {email, password})
+      await api.post('api/cadastro/', {nome: username, email, password})
       alert('Conta criada com sucesso!')
       onSwitch();
     } catch (error){

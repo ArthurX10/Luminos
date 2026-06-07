@@ -4,13 +4,13 @@ import './Side.css'
 import { GrHomeRounded } from "react-icons/gr";
 import { GoFileDirectory } from "react-icons/go";
 import { CiCalendar } from "react-icons/ci";
-import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FiAlignJustify } from "react-icons/fi";
 import { FiFileText } from "react-icons/fi";
 import { GoGear } from "react-icons/go";
 import { FaRegUserCircle } from "react-icons/fa";
+import { GoKebabHorizontal } from "react-icons/go";
 
-function Header() {
+function Side() {
   return (
     <div className="side-container">
       <div className="side-header">
@@ -22,8 +22,7 @@ function Header() {
         <ul className='side-nav-list'>
           <li className='side-nav-item'>
             <GrHomeRounded />
-              Home   
-             <FaMagnifyingGlass />
+               Home   
           </li>
           <li className="side-nav-item">
             <GoFileDirectory />
@@ -67,6 +66,11 @@ function Header() {
         </ul>
       </div>
 
+      <div className="side-history-header">
+        <GoKebabHorizontal />
+        Historico
+      </div>
+
 
 
       <div className="side-config">
@@ -85,4 +89,4 @@ function Header() {
   )
 }
 
-export default Header
+export default Side
