@@ -6,37 +6,60 @@ import api from '../api';
 
 
 function Home() {
+  const [greeting, setGreeting] = useState('');
   const [notes, setNotes] = useState([]);
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) {
+        return 'Bom dia';
+      } else if (hour < 18) {
+        return 'Boa tarde';
+      } else {
+        return 'Boa noite';
+      }
+    };
+
+    setGreeting(getGreeting());
+
+    const intervalId = setInterval(() => {
+      setGreeting(getGreeting());
+    }, 60000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     const userId = localStorage.getItem('user_id');
 
-    if(userId){
+    if (userId) {
       api.get(`api/perfil/${userId}/`)
         .then(response => {
-          setUserName(response.data.nome || `Usuário`);
+          setUserName(response.data.nome || 'Usuário');
         })
         .catch(error => console.error("Erro ao carregar os dados do usuário: ", error));
 
-          api.get(`api/notas/${userId}/`)
-            .then(response => {
-              const ordenadas = response.data.sort((a, b) => 
-              new Date(b.data_criacao) - new Date(a.data_criacao));
-              setNotes(ordenadas.slice(0, 4));
-            })
-            .catch(err => console.log(err));
-          }
-        },[]);
+      api.get(`api/notas/${userId}/`)
+        .then(response => {
+          const ordenadas = response.data.sort((a, b) => 
+            new Date(b.data_criacao) - new Date(a.data_criacao)
+          );
+          setNotes(ordenadas.slice(0, 4));
+        })
+        .catch(err => console.log(err));
+    }
+  }, []);
 
 
   return (
     <div className='home-container'>
-      <Side/>
+      <Side notes={notes} />
       <main className="home-content">
         {/* Criar uma função para trocar o conteúdo, (Bom dia, boa tarde, boa noite)*/}
         <div className="home-header">
-            <h1 className="home-greeting">BOM DIA, {userName}</h1>
+            <h1 className="home-greeting">{greeting.toUpperCase()}, {userName.toUpperCase()}</h1>
         </div>
 
         <div className="home-section">

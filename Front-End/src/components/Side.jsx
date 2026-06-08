@@ -10,7 +10,7 @@ import { GoGear } from "react-icons/go";
 import { FaRegUserCircle } from "react-icons/fa";
 import { GoKebabHorizontal } from "react-icons/go";
 
-function Side() {
+function Side({ notes = [] }) {
   return (
     <div className="side-container">
       <div className="side-header">
@@ -46,23 +46,20 @@ function Side() {
             <FiAlignJustify />
             Recentes
           </li>
-          {/*Criar uma logica para mostrar os ultimos 5 card*/}
-          <li className='side-recent-itens'>
-            <FiFileText />
-            Título 1
-          </li>
-          <li className='side-recent-itens'>
-            <FiFileText /> 
-            Título 2
-          </li>
-          <li className='side-recent-itens'>
-            <FiFileText />
-            Título 3
-          </li>
-          <li className='side-recent-itens'>
-            <FiFileText />
-            Título 4
-          </li>
+          {notes.length > 0 ? (
+            notes.slice(0, 4).map((note) => (
+              <li 
+                key={note.id}
+                className='side-recent-itens'>
+                <FiFileText />
+                {note.titulo || 'Sem Título'}
+              </li>
+            ))
+          ) : (
+            <li className='side-recent-itens' style={{ fontStyle: 'italic', cursor: 'default', pointerEvents: 'none', opacity: 0.6 }}>
+              Sem notas recentes
+            </li>
+          )}
         </ul>
       </div>
 
