@@ -34,6 +34,7 @@ class Anotacoes(models.Model):
 # novos campos adicionados depois da sprint 03
     cor_fundo = models.CharField(max_length=7, default='#FFFFFF')
     tipo_layout = models.CharField(max_length=20, default='TEXTO')
+    importante = models.BooleanField(default=False)
 
     etiquetas = models.ManyToManyField(Etiquetas, through='AnotacaoEtiquetas')
 
