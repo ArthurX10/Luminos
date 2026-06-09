@@ -10,9 +10,10 @@ import { IoFunnelOutline } from "react-icons/io5";
 import { FaRegClock } from "react-icons/fa";
 import { FiFilePlus } from "react-icons/fi";
 import { LuClipboardPen } from "react-icons/lu";
-import { FiFile } from "react-icons/fi";  
+import { FiFile } from "react-icons/fi";
 import { FaLocationArrow } from "react-icons/fa";
 import { FaRegTrashCan } from "react-icons/fa6";
+import { FiEdit } from "react-icons/fi";
 
 
 function Home() {
@@ -28,10 +29,12 @@ function Home() {
   const [newIcon, setNewIcon] = useState('');
   const [isSeachOpen, setIsSeatchOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [historyFilter, setHistoryFilter] = useState('acesso');
+  const [historyFilter, setHistoryFilter] = useState('ACESSO');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredNotes = notes.filter(note => (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase())));
+
+  {/* criar um handleEditNote, handleDeleteNote*/}
 
   const handleCancel = () => {
     setNewTitle('');
@@ -255,7 +258,7 @@ function Home() {
             <div className="history-filters">
               <button
                 type="button"
-                className={`history-filter-btn ${historyFilter === 'ACESSO'} ? 'active': ''}`}
+                className={`history-filter-btn ${historyFilter === 'ACESSO' ? 'active' : ''}`}
                 onClick={() => setHistoryFilter('ACESSO')}
               >
                 <FaRegClock /> ACESSO
@@ -263,71 +266,78 @@ function Home() {
 
               <button
                 type="button"
-                className={`history-filter-btn ${historyFilter === 'criação'} ? 'active': ''}`}
-                onClick={() => setHistoryFilter('criação')}
+                className={`history-filter-btn ${historyFilter === 'CRIAÇÃO' ? 'active' : ''}`}
+                onClick={() => setHistoryFilter('CRIAÇÃO')}
               >
                 <FiFilePlus /> criação
               </button>
 
               <button
                 type="button"
-                className={`history-filter-btn ${historyFilter === 'alteração'} ? 'active': ''}`}
-                onClick={() => setHistoryFilter('alteração')}
+                className={`history-filter-btn ${historyFilter === 'ALTERAÇÃO' ? 'active' : ''}`}
+                onClick={() => setHistoryFilter('ALTERAÇÃO')}
               >
                 <LuClipboardPen /> alteração
               </button>
+            </div>
+
+            <div className="history-table-header">
+              <div className="history-col col-name">
+                <FiFile /> NOME DA ANOTAÇÃO
               </div>
-
-              <div className="history-table-header">
-                <div className="history-col col-name">
-                  <FiFile /> NOME DA ANOTAÇÃO
-                </div>
-                <div className="history-col col-loc">
-                  <FaLocationArrow />LOCALIZAÇÃO
-                </div>
-                <div className="history-col col-time">
-                  <FaRegClock /> ULTIMO ACESSO
-                </div>
+              <div className="history-col col-loc">
+                <FaLocationArrow />LOCALIZAÇÃO
               </div>
+              <div className="history-col col-time">
+                <FaRegClock /> ULTIMO ACESSO
+              </div>
+            </div>
 
-              <div className="history-rows-list">
-                {notes.length > 0 ? (notes.map((note, index) => (
-                  <div key={note.id} className="history-row-item">
-                    <div className="history-col col-name">
-                      <FiFileText className="row-icon" />
-                      <span>{(note.titulo || 'Sem Título').toUpperCase()}</span>
+            <div className="history-rows-list">
+              {notes.length > 0 ? (notes.map((note, index) => (
+                <div key={note.id} className="history-row-item">
+                  <div className="history-col col-name">
+                    <FiFileText className="row-icon" />
+                    <span>{(note.titulo || 'Sem Título').toUpperCase()}</span>
+                  </div>
+
+                  <div className="history-col col-loc">
+                    <span>DIRETORIO {index + 1}</span>
+                  </div>
+
+                  <div className="history-col col-time">
+                    <span>{index === 0 ? '5 min Atrás' : index === 1 ? '2 horas atrás' : index === 2 ? '3 dias Atrás' : '1 Ano Atrás'}</span>
+                  </div>
+
+                  <div className="history-actions">
+                    <div
+                      style={{ color: '#ffffff' }}
+                      cursor= 'pointer'
+                      onClick={() => handleEditNote(note.id)}
+                      type="button"
+                      className="history-action-btn edit-btn"
+
+                    ><FiEdit />
                     </div>
-
-                    <div className="history-col col-loc">
-                      <span>DIRETORIO {index + 1}</span>
-                    </div>
-
-                    <div className="history-col col-time">
-                      <span>{index === 0 ? '5 min Atrás': index === 1 ? '2 horas atrás' : index === 2 ? '3 dias Atrás' : '1 Ano Atrás'}</span>
-                    </div>
-
-                    <div className="history-actions">
-                      <button 
-                        type="button"
-                        className="history-action-btn edit-btn"
-                        
-                      ><FiEdit /></button>
-                      <button
+                    
+                    <div
+                      style={{ cursor: 'pointer', color: '#ffffff' }}
+                      onClick={() => handleDeleteNote(note.id)}
                       type="button"
                       className="history-action-btn delete-btn">
-                        <FaRegTrashCan />
-                      </button>
+                      <FaRegTrashCan/>
                     </div>
                   </div>
-                ))
-              ):(
+                </div>
+              ))
+              ) : (
                 <p className="no-history-message">Nenhum anotação encontrada.</p>
               )}
 
-              </div>
-
             </div>
+
           </div>
+        </div>
       )}
     </div>
   )

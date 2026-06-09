@@ -1,4 +1,5 @@
 import React, { useState }from 'react';
+import { useNavigate } from 'react-router-dom';
 import Logo from './Logo'
 import './Side.css'
 import { GrHomeRounded } from "react-icons/gr";
@@ -14,6 +15,8 @@ import { IoAddOutline } from "react-icons/io5";
 
 
 function Side({ userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen }) {
+
+  const navigate = useNavigate();
 
   const handleHomeClick = () => {
     navigate('/home');
@@ -31,7 +34,7 @@ function Side({ userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen }) 
         <ul className='side-nav-list'>
           <li className="side-nav-item" onClick={onSearchOpen} style={{ cursor: 'pointer' }}>
             <FaMagnifyingGlass />
-            Pesquisar
+            Pesquisa
           </li  >
           <li className='side-nav-item' onClick={handleHomeClick}>
             <GrHomeRounded />
