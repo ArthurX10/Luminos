@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState }from 'react';
 import Logo from './Logo'
 import './Side.css'
 import { GrHomeRounded } from "react-icons/gr";
@@ -9,8 +9,17 @@ import { FiFileText } from "react-icons/fi";
 import { GoGear } from "react-icons/go";
 import { FaRegUserCircle } from "react-icons/fa";
 import { GoKebabHorizontal } from "react-icons/go";
+import { FaMagnifyingGlass } from "react-icons/fa6";
+import { IoAddOutline } from "react-icons/io5";
 
-function Side({ notes = [] }) {
+
+function Side({ userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen }) {
+
+  const handleHomeClick = () => {
+    navigate('/home');
+  };
+
+
   return (
     <div className="side-container">
       <div className="side-header">
@@ -20,7 +29,11 @@ function Side({ notes = [] }) {
         
        <nav>
         <ul className='side-nav-list'>
-          <li className='side-nav-item'>
+          <li className="side-nav-item" onClick={onSearchOpen} style={{ cursor: 'pointer' }}>
+            <FaMagnifyingGlass />
+            Pesquisar
+          </li  >
+          <li className='side-nav-item' onClick={handleHomeClick}>
             <GrHomeRounded />
                Home   
           </li>
@@ -35,8 +48,9 @@ function Side({ notes = [] }) {
         </ul>
        </nav>
 
-       <div className="side-add">
-        <p> + NOVA ANOTAÇÃO</p>
+       <div className="side-add" onClick={onNewNote}>
+        <IoAddOutline />
+        NOVA ANOTAÇÃO
        </div>
 
 
@@ -63,7 +77,7 @@ function Side({ notes = [] }) {
         </ul>
       </div>
 
-      <div className="side-history-header">
+      <div className="side-history-header" onClick={onHistoryOpen}>
         <GoKebabHorizontal />
         Historico
       </div>
