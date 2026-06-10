@@ -3,8 +3,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas
-from .serializers import AnotacaoSerializer, UsuarioSerializer, EtiquetaSerializer, ElementoVisualSerializer, ConexaoLinhaSerializer, AnotacaoCompletaSerializer
+from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas, Notificacoes
+# CORRIGIDO: NotificacaoSerializer agora importado ativamente e sem o '#' do comentário
+from .serializers import (
+    AnotacaoSerializer, UsuarioSerializer, EtiquetaSerializer, 
+    ElementoVisualSerializer, ConexaoLinhaSerializer, AnotacaoCompletaSerializer, 
+    NotificacaoSerializer,
+)
 from django.contrib.auth.hashers import check_password, make_password
 
 # ROTAS DA API (REACT / FRONT-END)
@@ -43,7 +48,6 @@ def api_login(request):
         return Response({"error": "Email não cadastrado."}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET', 'POST'])
-@api_view(['GET', 'POST'])
 def api_anotacoes(request, user_id):
     try:
         usuario = Usuarios.objects.get(id=user_id)
@@ -51,13 +55,14 @@ def api_anotacoes(request, user_id):
         return Response({"error": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
         
     if request.method == 'GET':
-
         etiqueta_id = request.query_params.get('etiqueta_id')
+        apenas_importantes = request.query_params.get('apenas_importantes') == 'true'
+        notas = Anotacoes.objects.filter(usuario=usuario).order_by('-importante', '-data_criacao')
         
-        notas = Anotacoes.objects.filter(usuario=usuario).order_by('-data_criacao')
-        
+        if apenas_importantes:
+            notas = notas.filter(importante=True)
+
         if etiqueta_id:
-            # O Django busca pela relação N:M usando o ID da tabela relacionada (Etiquetas)
             notas = notas.filter(etiquetas__id=etiqueta_id)
             
         serializer = AnotacaoCompletaSerializer(notas, many=True)
@@ -157,6 +162,41 @@ def api_salvar_conexao(request, nota_id):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['PATCH', 'GET'])
+def api_alternar_importante(request, nota_id):
+    try:
+        nota = Anotacoes.objects.get(pk=nota_id)
+        nota.importante = not nota.importante
+        nota.save()
+        if request.query_params.get('redirect') == 'true':
+            return redirect('exibir_anotacoes')
+        return Response({"id": nota.id, "importante": nota.importante}, status=status.HTTP_200_OK)
+    except Anotacoes.DoesNotExist:
+        return Response({"error": "Anotação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+# --- SPRINT 05: NOTIFICAÇÕES ---
+
+@api_view(['GET'])
+def api_listar_notificacoes(request, user_id):
+    try:
+        Usuarios.objects.get(id=user_id)
+    except Usuarios.DoesNotExist:
+        return Response({"error": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        
+    notificacoes = Notificacoes.objects.filter(usuario_id=user_id, lida=False).order_by('-criada_em')
+    serializer = NotificacaoSerializer(notificacoes, many=True)
+    return Response(serializer.data)
+
+@api_view(['PATCH'])
+def api_marcar_notificacao_lida(request, notificacao_id):
+    try:
+        notificacao = Notificacoes.objects.get(pk=notificacao_id)
+        notificacao.lida = True
+        notificacao.save()
+        return Response({"message": "Notificação marcada como lida."}, status=status.HTTP_200_OK)
+    except Notificacoes.DoesNotExist:
+        return Response({"error": "Notificação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
 # VIEWS TRADICIONAIS (TEMPLATES DJANGO .HTML)
 
 def cadastro_view(request):
@@ -166,7 +206,6 @@ def cadastro_view(request):
         if Usuarios.objects.filter(email=email).exists():
             messages.error(request, "Este e-mail já está cadastrado.")
         else:
-            # CORRIGIDO: Agora encripta a senha também pelo cadastro HTML
             Usuarios.objects.create(email=email, senha_hash=make_password(senha))
             messages.success(request, "Cadastro realizado! Agora faça login.")
             return redirect('login')
@@ -178,7 +217,6 @@ def login_view(request):
         senha_form = request.POST.get('senha')
         try:
             usuario = Usuarios.objects.get(email=email_form)
-            # CORRIGIDO: Usando check_password para validar a senha criptografada
             if check_password(senha_form, usuario.senha_hash):
                 request.session['usuario_id'] = usuario.id
                 return redirect('exibir_anotacoes')
@@ -193,7 +231,6 @@ def anotacoes_view(request):
     if not user_id:
         return redirect('login')
         
-    # CORRIGIDO: Busca do usuário movida para depois da validação da sessão
     usuario = get_object_or_404(Usuarios, id=user_id)
     
     if request.method == 'POST':
@@ -202,7 +239,7 @@ def anotacoes_view(request):
         Anotacoes.objects.create(usuario=usuario, titulo=titulo, conteudo=conteudo)
         messages.success(request, "Nota Salva")
         
-    notas = Anotacoes.objects.filter(usuario=usuario).order_by('-data_criacao')
+    notas = Anotacoes.objects.filter(usuario=usuario).order_by('-importante', '-data_criacao')
     return render(request, 'anotacao.html', {'notas': notas, 'usuario': usuario})
 
 def excluir_anotacao(request, pk):

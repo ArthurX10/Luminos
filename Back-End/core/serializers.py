@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas
+from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas, Notificacoes
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,7 +10,10 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class AnotacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Anotacoes
-        fields = ['id', 'titulo', 'conteudo', 'data_criacao']
+        fields = ['id', 'titulo', 'conteudo', 'data_criacao',
+                  'cor_fundo', 'tipo_layout', 'importante', 
+                  'data_prazo', 'dias_antecedencia_alerta']
+        read_only_fields = ['usuario']
 
 class EtiquetaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,3 +47,11 @@ class AnotacaoCompletaSerializer(serializers.ModelSerializer):
     def get_conexoes(self, obj):
         conexoes = ConexoesLinhas.objects.filter(anotacao=obj)
         return ConexaoLinhaSerializer(conexoes, many=True).data
+    
+class NotificacaoSerializer(serializers.ModelSerializer):
+# Traz o título da anotação associada para o Front-End poder exibir "Prazo perto: [Título da Nota]"
+    anotacao_titulo = serializers.CharField(source='anotacao.titulo', read_only=True)
+
+    class Meta:
+        model = Notificacoes
+        fields = ['id', 'usuario', 'anotacao', 'anotacao_titulo', 'mensagem', 'lida', 'criada_em']

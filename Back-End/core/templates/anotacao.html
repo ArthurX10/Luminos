@@ -9,10 +9,20 @@
 
 <hr>
 {% for nota in notas %}
-    <div style="border: 1px solid #ccc; margin-bottom: 10px; padding: 10px;">
+    <div style="margin-bottom: 10px; padding: 10px; {% if nota.importante %}border: 2px solid #F1C40F; background-color: #FFFDF0;{% else %}border: 1px solid #ccc;{% endif %}">
+        
+        {% if nota.importante %}
+            <span style="background: #F1C40F; color: black; padding: 2px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; margin-right: 5px;">IMPORTANTE</span>
+        {% endif %}
+
         <strong>{{ nota.titulo }}</strong> - <small>{{ nota.data_criacao }}</small>
         <p>{{ nota.conteudo }}</p>
+        
         <a href="{% url 'editar_anotacao' nota.pk %}">Editar</a> | 
-        <a href="{% url 'excluir_anotacao' nota.pk %}">Excluir</a>
+        <a href="{% url 'excluir_anotacao' nota.pk %}">Excluir</a> |
+        
+        <a href="/api/anotacao/{{ nota.pk }}/destacar?redirect=true" style="color: #E67E22; font-weight: bold; text-decoration: none;">
+            {% if nota.importante %}⭐ Tirar Destaque{% else %}☆ Destacar{% endif %}
+        </a>
     </div>
 {% endfor %}

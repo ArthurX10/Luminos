@@ -26,16 +26,16 @@ class Etiquetas(models.Model):
         unique_together = (('usuario', 'nome'),)
 
 class Anotacoes(models.Model):
-    usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE) 
+    usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE, db_column='usuario_id') 
     titulo = models.CharField(max_length=150, blank=True, null=True)
     conteudo = models.TextField()
     data_criacao = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-
-# novos campos adicionados depois da sprint 03
-    cor_fundo = models.CharField(max_length=7, default='#FFFFFF')
+    cor_fundo = models.CharField(max_length=7, default='#FFFFFF') #sprint 03
     tipo_layout = models.CharField(max_length=20, default='TEXTO')
-
+    importante = models.BooleanField(default=False) #sprint 04
     etiquetas = models.ManyToManyField(Etiquetas, through='AnotacaoEtiquetas')
+    data_prazo = models.DateTimeField(blank=True, null=True) #sprint 05
+    dias_antecedencia_alerta = models.IntegerField(default=1)
 
     class Meta:
         managed = True
@@ -79,3 +79,14 @@ class ConexoesLinhas(models.Model):
     class Meta:
         managed = True
         db_table = 'conexoes_linhas'
+
+class Notificacoes(models.Model):
+    usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE, db_column='usuario_id')
+    anotacao = models.ForeignKey(Anotacoes, on_delete=models.CASCADE, db_column='anotacao_id')
+    mensagem = models.TextField()
+    lida = models.BooleanField(default=False)
+    criada_em = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'notificacoes'

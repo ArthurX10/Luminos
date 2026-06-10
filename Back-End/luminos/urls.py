@@ -3,7 +3,9 @@ from django.urls import path
 # ADICIONADO: As novas funções da Sprint 03 foram incluídas no import aqui em cima
 from core.views import (
     api_login, api_cadastro, api_anotacoes, api_detalhe_anotacao, api_perfil_usuario,
-    api_gerenciar_etiquetas, api_vincular_etiqueta, api_salvar_elemento_visual, api_salvar_conexao
+    api_gerenciar_etiquetas, api_vincular_etiqueta, api_salvar_elemento_visual, api_salvar_conexao,
+    api_alternar_importante, api_listar_notificacoes, api_marcar_notificacao_lida,
+    login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view
 )
 
 urlpatterns = [
@@ -28,5 +30,22 @@ urlpatterns = [
     path('api/anotacao/<int:nota_id>/elemento/', api_salvar_elemento_visual),
     path('api/anotacao/<int:nota_id>/elemento', api_salvar_elemento_visual),
     path('api/anotacao/<int:nota_id>/conexao/', api_salvar_conexao),
-    path('api/anotacao/<int:nota_id>/conexao', api_salvar_conexao), # <-- Não esqueça dessa última vírgula!
+    path('api/anotacao/<int:nota_id>/conexao', api_salvar_conexao),
+    path('api/anotacao/<int:nota_id>/destacar/', api_alternar_importante),
+    path('api/anotacao/<int:nota_id>/destacar', api_alternar_importante),
+    # Sprint 05 (notificações)
+    path('api/notificacoes/<int:user_id>/', api_listar_notificacoes),
+    path('api/notificacoes/<int:user_id>', api_listar_notificacoes),
+    path('api/notificacao/<int:notificacao_id>/lida/', api_marcar_notificacao_lida),
+    path('api/notificacao/<int:notificacao_id>/lida', api_marcar_notificacao_lida),
+    # rotas tradicionais de HTML
+    path('login/', login_view, name='login'),
+    path('login', login_view),
+    path('cadastro/', cadastro_view, name='cadastro'),
+    path('cadastro', cadastro_view),
+    path('anotacoes/', anotacoes_view, name='exibir_anotacoes'),
+    path('anotacoes', anotacoes_view),
+    path('excluir/<int:pk>/', excluir_anotacao, name='excluir_anotacao'),
+    path('editar/<int:pk>/', editar_anotacao, name='editar_anotacao'),
+    path('logout/', logout_view, name='logout'),
 ]
