@@ -16,6 +16,7 @@ from django.contrib.auth.hashers import check_password, make_password
 
 @api_view(['POST'])
 def api_cadastro(request):
+    nome = request.data.get('nome')
     email = request.data.get('email')
     senha = request.data.get('senha') or request.data.get('password')
     
@@ -25,7 +26,7 @@ def api_cadastro(request):
     if Usuarios.objects.filter(email=email).exists():
         return Response({"error": "E-mail já cadastrado."}, status=status.HTTP_400_BAD_REQUEST)
         
-    usuario = Usuarios.objects.create(email=email, senha_hash=make_password(senha))
+    usuario = Usuarios.objects.create(nome=nome, email=email, senha_hash=make_password(senha))
     return Response({"message": "Usuário criado!"}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])

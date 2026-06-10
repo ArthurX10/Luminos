@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import Intro from '../components/Intro';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
+import ForgotPassword from '../components/forgotPassword';
+import CodeRedefinition from '../components/CodeRedefinition';
+import PasswordRedefinition from '../components/PasswordRedefinition';
 import './AuthPage.css';
 
 const phrases = [
@@ -11,11 +14,9 @@ const phrases = [
 ];
 
 function AuthPage() {
-  const [introComplete, setIntroComplete] = useState(false);
+  const [introComplete, setIntroComplete] = useState(true);
   const [authMode, setAuthMode] = useState('login'); 
   const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Typewriter state
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,7 +32,7 @@ function AuthPage() {
 
   const handleSwitchToRegister = () => handleSwitch('register');
   const handleSwitchToLogin = () => handleSwitch('login');
-
+  
   useEffect(() => {
     if (introComplete) return;
 
@@ -59,7 +60,6 @@ function AuthPage() {
     return () => clearTimeout(timeout);
   }, [displayedText, isDeleting, currentPhraseIndex, introComplete]);
 
-  // Fase de introdução com máquina de escrever
   if (!introComplete) {
     return (
       <div className="typewriter-overlay">
@@ -71,14 +71,43 @@ function AuthPage() {
     );
   }
 
-  // Fase principal: layout split com painéis
+  if (authMode === 'forgotPassword') {
+    return (
+      <div className="auth-page-container auth-page-enter central-layout">
+        <div key="forgot-password" className={`central-panel-wrapper fade-content ${isTransitioning ? 'blurred' : ''}`}>
+          <ForgotPassword onSwitch={handleSwitch} />
+        </div>
+      </div>
+    );
+  }
+
+  if (authMode === 'CodeRedefinition') {
+    return (
+      <div className="auth-page-container auth-page-enter central-layout">
+        <div key="code-redefinition" className={`central-panel-wrapper fade-content ${isTransitioning ? 'blurred' : ''}`}>
+          <CodeRedefinition onSwitch={handleSwitch} />
+        </div>
+      </div>
+    );
+  }
+
+  if(authMode === 'resetPassword'){
+    return(
+      <div className="auth-page-container auth-page-enter central-layout">
+        <div key="password-redefinition" className={`central-panel-wrapper fade-content ${isTransitioning ? 'blurred' : ''}`}>
+          <PasswordRedefinition onSwitch={handleSwitch} />
+        </div>
+      </div>
+    )
+  }
+
+  const showLoginOrForgot = authMode === 'login';
+
   return (
     <div className="auth-page-container auth-page-enter">
-      
-      {/* Painel Esquerdo */}
-      <div className={`side-panel panel-left ${authMode === 'login' ? 'panel-dark' : 'panel-light'}`}>
+      <div className={`side-panel panel-left ${showLoginOrForgot ? 'panel-dark' : 'panel-light'}`}>
         <div key={`left-${authMode}`} className={`fade-content ${isTransitioning ? 'blurred' : ''}`}>
-          {authMode === 'login' ? (
+          {showLoginOrForgot ? (
             <Intro 
               showSplitView={true} 
               isRegister={false}
@@ -90,12 +119,10 @@ function AuthPage() {
         </div>
       </div>
 
-  
-      {/* Painel Direito */}
-      <div className={`side-panel panel-right ${authMode === 'login' ? 'panel-light' : 'panel-dark'}`}>
+      <div className={`side-panel panel-right ${showLoginOrForgot ? 'panel-light' : 'panel-dark'}`}>
         <div key={`right-${authMode}`} className={`fade-content ${isTransitioning ? 'blurred' : ''}`}>
           {authMode === 'login' ? (
-            <LoginForm onSwitch={handleSwitchToRegister} />
+            <LoginForm onSwitch={handleSwitch} />
           ) : (
             <Intro 
               showSplitView={true} 
