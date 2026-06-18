@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas, Notificacoes
+from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas, Notificacoes, Eventos
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,7 +51,13 @@ class AnotacaoCompletaSerializer(serializers.ModelSerializer):
 class NotificacaoSerializer(serializers.ModelSerializer):
 # Traz o título da anotação associada para o Front-End poder exibir "Prazo perto: [Título da Nota]"
     anotacao_titulo = serializers.CharField(source='anotacao.titulo', read_only=True)
+    evento_titulo = serializers.CharField(source='evento.titulo', read_only=True)
 
     class Meta:
         model = Notificacoes
-        fields = ['id', 'usuario', 'anotacao', 'anotacao_titulo', 'mensagem', 'lida', 'criada_em']
+        fields = ['id', 'usuario', 'anotacao', 'anotacao_titulo', 'evento', 'evento_titulo', 'mensagem', 'lida', 'criada_em']
+
+class EventoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Eventos
+        fields = ['id', 'usuario', 'titulo', 'descricao', 'tipo', 'data_inicio', 'data_fim', 'criado_em']

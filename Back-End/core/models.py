@@ -80,9 +80,39 @@ class ConexoesLinhas(models.Model):
         managed = True
         db_table = 'conexoes_linhas'
 
+# Calendario
+class Eventos(models.Model):
+    TIPO_CHOICES = [
+        ('LEMBRETE', 'Lembrete'),
+        ('REUNIAO', 'Reunião'),
+        ('EVENTO', 'Evento'),
+        ('ANIVERSARIO', 'Aniversário'),
+        ('AVALIACAO', 'Avaliação'),
+    ]
+
+    usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE, db_column='usuario_id')
+    titulo = models.CharField(max_length=255)
+    descricao = models.TextField(blank=True, null=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    data_inicio = models.DateTimeField()
+    data_fim = models.DateTimeField(blank=True, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'eventos'
+        # Criando o índice que o David pediu para o calendário
+        indexes = [
+            models.Index(fields=['data_inicio'], name='idx_evento_data_inicio'),
+        ]
+
+    def __str__(self):
+        return self.titulo
+
 class Notificacoes(models.Model):
     usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE, db_column='usuario_id')
-    anotacao = models.ForeignKey(Anotacoes, on_delete=models.CASCADE, db_column='anotacao_id')
+    anotacao = models.ForeignKey(Anotacoes, on_delete=models.CASCADE, db_column='anotacao_id', blank=True, null=True) # Modificado para null=True porque agora a notificação pode vir de um evento
+    evento = models.ForeignKey(Eventos, on_delete=models.CASCADE, db_column='evento_id', blank=True, null=True) # nova chave estrangeira para o calendario
     mensagem = models.TextField()
     lida = models.BooleanField(default=False)
     criada_em = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -90,3 +120,4 @@ class Notificacoes(models.Model):
     class Meta:
         managed = True
         db_table = 'notificacoes'
+

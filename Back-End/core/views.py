@@ -3,12 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas, Notificacoes
-# CORRIGIDO: NotificacaoSerializer agora importado ativamente e sem o '#' do comentário
+from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas, Notificacoes, Eventos
+
 from .serializers import (
     AnotacaoSerializer, UsuarioSerializer, EtiquetaSerializer, 
     ElementoVisualSerializer, ConexaoLinhaSerializer, AnotacaoCompletaSerializer, 
-    NotificacaoSerializer,
+    NotificacaoSerializer, EventoSerializer
 )
 from django.contrib.auth.hashers import check_password, make_password
 
@@ -16,7 +16,6 @@ from django.contrib.auth.hashers import check_password, make_password
 
 @api_view(['POST'])
 def api_cadastro(request):
-    nome = request.data.get('nome')
     email = request.data.get('email')
     senha = request.data.get('senha') or request.data.get('password')
     
@@ -26,7 +25,7 @@ def api_cadastro(request):
     if Usuarios.objects.filter(email=email).exists():
         return Response({"error": "E-mail já cadastrado."}, status=status.HTTP_400_BAD_REQUEST)
         
-    usuario = Usuarios.objects.create(nome=nome, email=email, senha_hash=make_password(senha))
+    usuario = Usuarios.objects.create(email=email, senha_hash=make_password(senha))
     return Response({"message": "Usuário criado!"}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
@@ -112,7 +111,7 @@ def api_perfil_usuario(request, user_id):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-# --- ENDPOINTS DE ETIQUETAS ---
+# ENDPOINTS DE ETIQUETAS
     
 @api_view(['GET', 'POST'])
 def api_gerenciar_etiquetas(request, user_id):
@@ -197,6 +196,45 @@ def api_marcar_notificacao_lida(request, notificacao_id):
         return Response({"message": "Notificação marcada como lida."}, status=status.HTTP_200_OK)
     except Notificacoes.DoesNotExist:
         return Response({"error": "Notificação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+    
+# CRUD EVENTOS 18/06/2026
+
+# LISTAR E CRIAR EVENTOS DO USUÁRIO
+@api_view(['GET', 'POST'])
+def api_gerenciar_eventos(request, user_id):
+    if request.method == 'GET':
+        # Traz os eventos ordenados pela data de início
+        eventos = Eventos.objects.filter(usuario_id=user_id).order_by('data_inicio')
+        serializer = EventoSerializer(eventos, many=True)
+        return Response(serializer.data)
+        
+    if request.method == 'POST':
+        data = request.data.copy()
+        data['usuario'] = user_id # Vincula o evento ao usuário logado
+        serializer = EventoSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# ATUALIZAR E DELETAR UM EVENTO ESPECÍFICO
+@api_view(['PUT', 'DELETE'])
+def api_detalhe_evento(request, pk):
+    try:
+        evento = Eventos.objects.get(pk=pk)
+    except Eventos.DoesNotExist:
+        return Response({"error": "Evento não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == 'PUT':
+        serializer = EventoSerializer(evento, data=request.data, partial=True) # partial=True permite atualizar só alguns campos
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    if request.method == 'DELETE':
+        evento.delete()
+        return Response({"message": "Evento deletado com sucesso!"}, status=status.HTTP_204_NO_CONTENT)
 
 # VIEWS TRADICIONAIS (TEMPLATES DJANGO .HTML)
 
@@ -272,3 +310,4 @@ def editar_anotacao(request, pk):
 def logout_view(request):
     request.session.flush()
     return redirect('login')
+

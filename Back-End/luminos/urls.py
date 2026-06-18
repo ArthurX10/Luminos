@@ -5,7 +5,7 @@ from core.views import (
     api_login, api_cadastro, api_anotacoes, api_detalhe_anotacao, api_perfil_usuario,
     api_gerenciar_etiquetas, api_vincular_etiqueta, api_salvar_elemento_visual, api_salvar_conexao,
     api_alternar_importante, api_listar_notificacoes, api_marcar_notificacao_lida,
-    login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view
+    login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view, api_detalhe_evento, api_gerenciar_eventos
 )
 
 urlpatterns = [
@@ -38,6 +38,9 @@ urlpatterns = [
     path('api/notificacoes/<int:user_id>', api_listar_notificacoes),
     path('api/notificacao/<int:notificacao_id>/lida/', api_marcar_notificacao_lida),
     path('api/notificacao/<int:notificacao_id>/lida', api_marcar_notificacao_lida),
+    # Calendario
+    path('api/eventos/<int:user_id>/', api_gerenciar_eventos, name='api_gerenciar_eventos'),
+    path('api/evento/<int:pk>/', api_detalhe_evento, name='api_detalhe_evento'),
     # rotas tradicionais de HTML
     path('login/', login_view, name='login'),
     path('login', login_view),
