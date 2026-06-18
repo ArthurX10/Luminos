@@ -1,4 +1,4 @@
-import React, { useState }from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from './Logo'
 import './Side.css'
@@ -12,9 +12,11 @@ import { FaRegUserCircle } from "react-icons/fa";
 import { GoKebabHorizontal } from "react-icons/go";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { IoAddOutline } from "react-icons/io5";
+import api from '../api'
 
 
-function Side({ userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen }) {
+
+function Side({userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen, onSettingsOpen, onGestaoOpen }) {
 
   const navigate = useNavigate();
 
@@ -23,6 +25,12 @@ function Side({ userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen }) 
   };
 
 
+  const handleCalendarClick = () =>{
+     navigate('/calendar');
+  }
+
+
+  
   return (
     <div className="side-container">
       <div className="side-header">
@@ -36,15 +44,15 @@ function Side({ userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen }) 
             <FaMagnifyingGlass />
             Pesquisa
           </li  >
-          <li className='side-nav-item' onClick={handleHomeClick}>
+          <li className='side-nav-item' onClick={handleHomeClick} style={{cursor: 'pointer'}}>
             <GrHomeRounded />
                Home   
           </li>
-          <li className="side-nav-item">
+          <li className="side-nav-item" onClick={onGestaoOpen} style={{cursor: 'pointer'}}>
             <GoFileDirectory />
               Gestão
           </li>
-          <li className="side-nav-item">
+          <li className="side-nav-item" onClick={handleCalendarClick} style={{cursor: 'pointer'}}>
             <CiCalendar />
               Calendário
           </li>
@@ -87,17 +95,15 @@ function Side({ userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen }) 
 
 
 
-      <div className="side-config">
+      <div className="side-config" onClick={onSettingsOpen} >
         <GoGear />
         Configurações
       </div>
 
 
-      <div className="side-user">
-        {/*Criar uma logica para mostrar o nome do usuário*/}
-        {/*Criar uma logica para mostrar a foto do usuário*/}
+      <div className="side-user" onClick={() => setActiveModal('PROFILE') }>
         <FaRegUserCircle />
-        Nome do Usuário
+        <p>{userName}</p>
       </div>
     </div>
   )

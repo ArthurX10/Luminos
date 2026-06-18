@@ -7,40 +7,138 @@ import { CiCamera } from "react-icons/ci";
 import { FiFileText } from "react-icons/fi";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { IoFunnelOutline } from "react-icons/io5";
-import { FaRegClock } from "react-icons/fa";
+import { FaRegClock, FaRegCalendar, FaLocationArrow } from "react-icons/fa";
 import { FiFilePlus } from "react-icons/fi";
 import { LuClipboardPen } from "react-icons/lu";
 import { FiFile } from "react-icons/fi";
-import { FaLocationArrow } from "react-icons/fa";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { FiEdit } from "react-icons/fi";
+import { FaRegUser } from "react-icons/fa";
+import { IoTvOutline } from "react-icons/io5";
+import { FaRegBell } from "react-icons/fa6";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { RiText } from "react-icons/ri";
+import { GoDeviceCameraVideo } from "react-icons/go";
+import { MdSunny } from "react-icons/md";
+import { GoFileDirectory } from "react-icons/go";
 
 
 function Home() {
   const [greeting, setGreeting] = useState('');
   const [notes, setNotes] = useState([]);
   const [userName, setUserName] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('');
-  const [newBrief, setNewBrief] = useState('');
-  const [newLabel, setNewLabel] = useState('');
-  const [newIcon, setNewIcon] = useState('');
-  const [isSeachOpen, setIsSeatchOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [textSize, setTextSize] = useState('MEDIO')
+  const [reduceAnimations, setReduceAnimations] = useState(false);
+  const [showDailyQuote, setShowDailyQuote] = useState(true);
+  const [notificationFrequency, setNotificationFrequency] = useState('ÚNICA');
   const [historyFilter, setHistoryFilter] = useState('ACESSO');
+  const [managerFilter, setManagerFilter] = useState('ANOTAÇÕES')
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeModal, setActiveModal] = useState(null);
+  const [userEmail, setUserEmail] = useState('');
+  const [userCreatedDate, setUserCreatedDate] = useState('');
+  const [remeberDiary, setRemeberDiary] = useState(false);
+  const [rememberCalendar, setRememberCalendar] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+
 
   const filteredNotes = notes.filter(note => (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase())));
 
-  {/* criar um handleEditNote, handleDeleteNote*/}
+  const handleDeleteAccount = () => {
+    const userId = localStorage.getItem('user_id')
+    if (!userId) return;
+
+    api.delete(`api/perfil/${userId}/`)
+      .then(response => {
+        alert("Conta deletada com sucesso!")
+        setActiveModal(null);
+      })
+      .catch(error => console.error("Erro ao deletar conta: ", error))
+  }
+
+  const handleUpdateProfile = () => {
+    const userId = localStorage.getItem('user_id')
+    if (!userId) return;
+
+    api.put(`api/perfil/${userId}/`, {
+      nome: userName
+    })
+      .then(response => {
+        alert("Perfil atualizado com sucesso!")
+        setActiveModal(null);
+      })
+      .catch(error => console.error("Erro ao atualizar perfil: ", error))
+  }
 
   const handleCancel = () => {
     setNewTitle('');
     setNewDescription('');
     setSelectedFolder('');
-    setIsModalOpen(false);
+    setActiveModal(null);
+  }
+
+  const handlePasswordRedefinition = (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmNewPassword) {
+      alert('Senhas não coincidem!');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert('Senha deve ter pelo menos 6 caracteres!');
+      return;
+    }
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) return;
+
+    api.put(`api/perfil/${userId}/`, {
+      senha: newPassword
+    })
+      .then(response => {
+        alert('Senha redefinida com sucesso!');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setActiveModal('PROFILE');
+      })
+      .catch(error => {
+        console.error("Erro ao redefinir senha: ", error);
+        alert(error.response?.data?.error || 'Erro ao redefinir a senha.');
+      });
+  };
+
+  const handleDeleteNote = (noteId) => {
+    if (!window.confirm('Deseja realmente excluir esta anotação?'))
+      return;
+
+    api.delete(`api/notas/detalhe/${noteId}/`)
+      .then(response => {
+        alert('Anotação excluída com sucesso!');
+        setNotes(prevNotes => prevNotes.filter(n => n.id !== noteId));
+      })
+      .catch(error => {
+        console.error('Erro ao deletar anotação: ', error);
+        alert("Erro ao excluir a anotação");
+      });
+  };
+
+
+  const handleEditNote = (noteId) => {
+    const noteToEdit = notes.find(n => n.id === noteId);
+    if (!noteToEdit) return;
+
+    setEditingNote(noteToEdit);
+    setNewTitle(noteToEdit.titulo || '');
+    setNewDescription(noteToEdit.conteudo || '');
+    setSelectedFolder(noteToEdit.pasta_id || '');
+    setActiveModal('EDIT_NOTE');
   }
 
   const handleCreateNote = (e) => {
@@ -58,11 +156,75 @@ function Home() {
         setNewDescription('');
         setSelectedFolder('');
 
-        setIsModalOpen(false);
+        setActiveModal(null);
       })
       .catch(error => console.log("Erro ao criar nota: ", error))
   }
 
+
+  const handleUpdateNote = (e) => {
+    e.preventDefault();
+    if (!editingNote) return;
+
+    api.put(`api/notas/detalhe/${editingNote.id}/`, {
+      titulo: newTitle,
+      conteudo: newDescription,
+    })
+      .then(response => {
+        alert('Anotação atualizada com sucesso!');
+        setNotes(prevNotes => prevNotes.map(n => n.id === editingNote.id ? response.data : n));
+        setNewTitle('');
+        setNewDescription('');
+        setSelectedFolder('');
+        setActiveModal(null);
+        setActiveModal('GESTAO')
+      })
+      .catch(error => {
+        console.error('erro ao atualizar nota: ', error);
+        alert('Erro ao atualizar a anotação')
+      });
+
+  };
+
+
+  const getGroupedNotesByLetter = () => {
+    const grouped = notes.reduce((acc, note) => {
+      const title = note.titulo || 'SEM TÍTULO';
+      const firstLetter = title.charAt(0).toUpperCase();
+      if (!acc[firstLetter]) {
+        acc[firstLetter] = [];
+      }
+      acc[firstLetter].push(note);
+      return acc;
+    }, {});
+    return Object.keys(grouped).sort().reduce((acc, letter) => {
+      acc[letter] = grouped[letter].sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+      return acc;
+    }, {});
+  };
+
+
+  const getNoteFolder = (note) => {
+    const id = note.id || 0;
+    if (id % 3 === 0) return 'PESSOAL';
+    if (id % 3 === 1) return 'TRABALHO / FACULDADE';
+    return 'ESPORTE';
+  };
+
+  const getGroupedNotesByFolder = () => {
+    const folders = {
+      'PESSOAL': [],
+      'TRABALHO / FACULDADE': [],
+      'ESPORTE': []
+    }
+    notes.forEach(note => {
+      const folderName = getNoteFolder(note);
+      if (folders[folderName]) {
+        folders[folderName].push(note);
+      }
+    });
+    return folders;
+  };
 
   useEffect(() => {
     const getGreeting = () => {
@@ -92,6 +254,8 @@ function Home() {
       api.get(`api/perfil/${userId}/`)
         .then(response => {
           setUserName(response.data.nome || 'Usuário');
+          setUserEmail(response.data.email || '');
+          setUserCreatedDate(response.data.data_criacao || '')
         })
         .catch(error => console.error("Erro ao carregar os dados do usuário: ", error));
 
@@ -110,14 +274,18 @@ function Home() {
   return (
 
     <div className='home-container'>
-      <Side notes={notes}
-        onNewNote={() => setIsModalOpen(true)}
-        onSearchOpen={() => setIsSeatchOpen(true)}
-        onHistoryOpen={() => setIsHistoryOpen(true)}
+      <Side
+        userName={userName}
+        notes={notes}
+        onNewNote={() => setActiveModal("CREATE_NOTE")}
+        onSearchOpen={() => setActiveModal('SEARCH')}
+        onHistoryOpen={() => setActiveModal('HISTORY')}
+        onSettingsOpen={() => setActiveModal('SETTINGS')}
+        onGestaoOpen={() => setActiveModal('GESTAO')}
+        activeModal={activeModal}
       />
 
       <main className="home-content">
-        {/* Criar uma função para trocar o conteúdo, (Bom dia, boa tarde, boa noite)*/}
         <div className="home-header">
           <h1 className="home-greeting">{greeting.toUpperCase()}, {userName.toUpperCase()}</h1>
         </div>
@@ -143,8 +311,8 @@ function Home() {
 
       </main>
 
-      {isModalOpen && (
-        <div className='modal-overlay fade-in' onClick={() => setIsModalOpen(false)} >
+      {activeModal === 'CREATE_NOTE' && (
+        <div className='modal-overlay fade-in' onClick={() => setActiveModal(null)} >
           <div className='modal-container' onClick={(e) => e.stopPropagation()}>
             <h2 className='modal-title'>
               Criação de anotação
@@ -212,8 +380,8 @@ function Home() {
         </div>
       )}
 
-      {isSeachOpen && (
-        <div className='modal-overlay fade-in' onClick={() => setIsSeatchOpen(false)}>
+      {activeModal === 'SEARCH' && (
+        <div className='modal-overlay fade-in' onClick={() => setActiveModal(null)}>
           <div className='modal-container' onClick={(e) => e.stopPropagation()}>
             <h2 className='modal-title'>Pesquisar Anotação</h2>
             <div className="search-bar-container">
@@ -251,8 +419,8 @@ function Home() {
         </div>
       )}
 
-      {isHistoryOpen && (
-        <div className="modal-overlay fade-in" onClick={() => setIsHistoryOpen(false)}>
+      {activeModal === 'HISTORY' && (
+        <div className="modal-overlay fade-in" onClick={() => setActiveModal(null)}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
             <h2 className="modal-title">HISTÓRICO</h2>
             <div className="history-filters">
@@ -312,20 +480,20 @@ function Home() {
                   <div className="history-actions">
                     <div
                       style={{ color: '#ffffff' }}
-                      cursor= 'pointer'
+                      cursor='pointer'
                       onClick={() => handleEditNote(note.id)}
                       type="button"
                       className="history-action-btn edit-btn"
 
                     ><FiEdit />
                     </div>
-                    
+
                     <div
                       style={{ cursor: 'pointer', color: '#ffffff' }}
                       onClick={() => handleDeleteNote(note.id)}
                       type="button"
                       className="history-action-btn delete-btn">
-                      <FaRegTrashCan/>
+                      <FaRegTrashCan />
                     </div>
                   </div>
                 </div>
@@ -339,8 +507,490 @@ function Home() {
           </div>
         </div>
       )}
+
+      {activeModal === 'SETTINGS' && (
+        <div className='modal-overlay fade-in' onClick={() => setActiveModal(null)}>
+          <div className='modal-container settings-modal-container' onClick={(e) => e.stopPropagation()} >
+            <h2 className="modal-title">CONFIGURAÇÕES</h2>
+            <div className='settings-options-list'>
+              <div className='settings-option-item' onClick={() => setActiveModal('PROFILE')}>
+                <FaRegUser size={22} />
+                <span>Painel do Usuário</span>
+              </div>
+
+              <div className='settings-option-item' onClick={() => setActiveModal('PERSONALIZAR')}>
+                <IoTvOutline size={22} />
+                <span>Personalizar experiência</span>
+              </div>
+
+              <div className='settings-option-item' onClick={() => setActiveModal('NOTIFICAÇÕES')}>
+                <FaRegBell size={22} />
+                <span>Notificações</span>
+              </div>
+
+              <div className='settings-option-item' onClick={() => setActiveModal('SOBRE')}>
+                <IoMdInformationCircleOutline size={22} />
+                <span>Sobre o luminos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'PROFILE' && (
+        <div className="modal-overlay fade-in" onClick={() => setActiveModal(null)}>
+          <div className='modal-container profile-modal-container' onClick={(e) => e.stopPropagation()}>
+            <h2 className='modal-title'>PAINEL DE USUÁRIO</h2>
+            <div className="profile-header-section">
+              <div className='profile-avatar-circle'>
+                <FaRegUser size={36} color="#ffffff" />
+              </div>
+              <div className="profile-username-group">
+                <h2>Usuário:</h2>
+                <input
+                  type='text'
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className='profile-username-input'
+                />
+              </div>
+            </div>
+
+            <div className='profile-info-fields'>
+              <div className='profile-info-row'>
+                <label>E-MAIL</label>
+                <span className='profile-info-value'>
+                  {userEmail.toUpperCase()}</span>
+              </div>
+
+              <div className='profile-info-row profile-password-row'>
+                <div>
+                  <label>SENHA</label>
+                  <span className='profile-info-value'>GERENCIE SUAS SENHAS</span>
+                </div>
+                <button type='button' className='btn-change-password' onClick={() => setActiveModal('REDEFINIR-SENHA')}>ALTERAR SENHA</button>
+              </div>
+
+              <div className="profile-info-row">
+                <label>USUÁRIO DESDE:</label>
+                <span className='profile-info-value'>
+                  {userCreatedDate ? new Date(userCreatedDate).toLocaleDateString('pt-BR') : 'DD DE MM AAAA'}
+                </span>
+              </div>
+            </div>
+
+            <div className="profile-actions-row">
+              <button type="button" className='btn-confirm-changes' onClick={handleUpdateProfile}>
+                CONFIRMAR ALTERAÇÕES
+              </button>
+
+              <button type="button" className='btn-delete-account' onClick={() => setActiveModal('DELETE-ACCOUNT')}>
+                DELETAR MINHA CONTA
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+
+      {activeModal === 'DELETE-ACCOUNT' && (
+        <div className='modal-overlay fade-in' onClick={() => setActiveModal(null)}>
+          <div className='modal-container delete-account-modal-container' onClick={(e) => e.stopPropagation()}>
+            <h2 className='modal-title' style={{ color: "#FFE100" }}>ATENÇÃO!!!</h2>
+
+            <div className='delete-account-content'>
+              <p>Ao continuar, sua <span>conta e todas as anotações </span>inculadas a ela serão <span>apagadas permanentemente.</span> Esses dados não poderão ser restaurados depois da exclusão.</p>
+
+            </div>
+
+            <div className='delete-actions-row'>
+              <button
+                type='button' className='btn-delete-account' onClick={handleDeleteAccount}
+              >
+                DELETAR CONTA
+              </button>
+
+              <button
+                type='button' className='btn-cancelar-delete-account' onClick={() => setActiveModal(null)}
+              >
+                CANCELAR
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      )}
+
+
+      {activeModal === 'PERSONALIZAR' && (
+        <div className='modal-overlay fade-in' onClick={() => setActiveModal(null)}>
+          <div className='modal-container experience-modal-container' onClick={(e) => e.stopPropagation()}>
+            <h2 className='modal-title'>PERSONALIZAR EXPERIÊNCIA</h2>
+            <div className='experience-options-list'>
+
+              {/* Tamanho de Texto */}
+              <div className='experience-option-item'>
+                <div className='experience-label-group'>
+                  <RiText size={24} color='#ffffff' />
+                  <span>TAMANHO DE TEXTO</span>
+                </div>
+                <div className='text-size-pills'>
+                  {['PEQUENO', 'MÉDIO', 'GRANDE'].map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      className={textSize === size ? 'active' : ''}
+                      onClick={() => setTextSize(size)}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Reduzir Animações */}
+              <div className='experience-option-item'>
+                <div className='experience-label-group'>
+                  <GoDeviceCameraVideo size={24} color='#ffffff' />
+                  <span>REDUZIR AS ANIMAÇÕES</span>
+                </div>
+                <div
+                  className={`toggle-switch ${reduceAnimations ? 'active' : ''}`}
+                  onClick={() => setReduceAnimations(!reduceAnimations)}
+                >
+                  <div className='toggle-knob'></div>
+                </div>
+              </div>
+
+              {/* Exibir Frase do Dia */}
+              <div className='experience-option-item'>
+                <div className='experience-label-group'>
+                  <MdSunny size={24} color='#ffffff' />
+                  <span>EXIBIR FRASE DO DIA</span>
+                </div>
+                <div
+                  className={`toggle-switch ${showDailyQuote ? 'active' : ''}`}
+                  onClick={() => setShowDailyQuote(!showDailyQuote)}
+                >
+                  <div className='toggle-knob'></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'NOTIFICAÇÕES' && (
+        <div className="modal-overlay fade-in" onClick={() => setActiveModal(null)}>
+          <div className='modal-container' onClick={(e) => e.stopPropagation()}>
+            <h2 className='modal-title'>NOTIFICAÇÕES</h2>
+
+            <div className='experience-options-list'> {/* Reutilizando classe de espaçamento */}
+
+              {/* Lembrete Diário */}
+              <div className='experience-option-item'>
+                <div className='experience-label-group'>
+                  <FaRegClock size={24} color='#ffffff' />
+                  <span>LEMBRETE DE ATIVIDADES DIÁRIOS</span>
+                </div>
+                <div
+                  className={`toggle-switch ${remeberDiary ? 'active' : ''}`}
+                  onClick={() => setRemeberDiary(!remeberDiary)}
+                >
+                  <div className='toggle-knob'></div>
+                </div>
+              </div>
+
+              {/* Frequência dos Lembretes */}
+              <div className='experience-option-item'>
+                <div className='experience-label-group'>
+                  <FaRegBell size={24} color='#ffffff' />
+                  <span>FRÊQUENCIA DOS LEMBRETES</span>
+                </div>
+                <div className='text-size-pills'>
+                  {['ÚNICA', '2X', '3X'].map((freq) => (
+                    <button
+                      key={freq}
+                      type="button"
+                      className={notificationFrequency === freq ? 'active' : ''}
+                      onClick={() => setNotificationFrequency(freq)}
+                    >
+                      {freq}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lembretes do Calendário */}
+              <div className='experience-option-item'>
+                <div className='experience-label-group'>
+                  <FaRegCalendar size={24} color='#ffffff' />
+                  <span>LEMBRETES DO CALENDÁRIO</span>
+                </div>
+                <div
+                  className={`toggle-switch ${rememberCalendar ? 'active' : ''}`}
+                  onClick={() => setRememberCalendar(!rememberCalendar)}
+                >
+                  <div className='toggle-knob'></div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+
+      {activeModal === 'SOBRE' && (
+        <div className="modal-overlay fade-in" onClick={() => setActiveModal(null)}>
+          <div className='modal-container' onClick={(e) => e.stopPropagation()}>
+            <h2 className='modal-title'>SOBRE O LUMINOS</h2>
+            <div className="about-content">
+              <p>O Luminos é uma ferramenta de gestão pessoal desenvolvida como projeto da disciplina de Engenharia de Software do 5º semestre do curso de Bacharelado em Ciência da Computação do IFCE Campus Tianguá.</p>
+              <p>A disciplina é ministrada pela professora Cynthia Pinheiro Santiago. O projeto foi desenvolvido pela equipe composta por David Lucas Rodrigues Feitosa, João Arthur Rodrigues Pontes, João Igor de Sousa Ferro, José Gabriel Soares dos Santos e Vinicius Rolim Aguiar Ibiapina.</p>
+              <p>O objetivo do Luminos é oferecer uma plataforma simples, intuitiva e organizada para auxiliar usuários na gestão de anotações, tarefas e informações pessoais, promovendo maior clareza mental e produtividade no dia a dia.</p>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+
+      {activeModal === 'REDEFINIR-SENHA' && (
+        <div className='modal-overlay fade-in' onClick={() => setActiveModal(null)}>
+          <div className='modal-container' onClick={(e) => e.stopPropagation()}>
+            <h2 className='modal-title'>ALTERAR SENHA</h2>
+
+            <form className="auth-form" onSubmit={handlePasswordRedefinition}>
+
+              <div className="central-card fade-in">
+                <div className="form-group relative-group">
+                  <label htmlFor="password">DIGITE A SUA NOVA SENHA: </label>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      placeholder="Digite a senha Desejada"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showPassword ? (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group relative-group">
+                  <label htmlFor="confirmPassword">CONFIRME SUA SENHA:</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      id="confirmPassword"
+                      placeholder="Confirme a senha"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showConfirmPassword ? (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="submit-container">
+                  <button type="submit" className="btn-primary btn-capsule">REDEFINIR</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+
+      {activeModal === 'GESTAO' && (
+        <div className='modal-overlay fade-in' onClick={() => setActiveModal(null)}>
+          <div className='modal-container' onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px' }}>
+            <h2 className='modal-title'>GESTÃO</h2>
+            <div className='manager-filters'>
+              <button
+                type='button'
+                className={`manager-filter-btn ${managerFilter === 'ANOTAÇÕES' ? 'active' : ''}`}
+                onClick={() => setManagerFilter('ANOTAÇÕES')}
+              >
+                <FiFileText />
+                ANOTAÇÕES
+              </button>
+              <button
+                type='button'
+                className={`manager-filter-btn ${managerFilter === 'PASTAS' ? 'active' : ''}`}
+                onClick={() => setManagerFilter('PASTAS')}
+              >
+                <GoFileDirectory />
+                PASTAS
+              </button>
+            </div>
+            <div className="manager-divider"></div>
+            <div className='manager-rows-list'>
+              {managerFilter === 'ANOTAÇÕES' ? (
+                Object.keys(getGroupedNotesByLetter()).length > 0 ? (
+                  Object.entries(getGroupedNotesByLetter()).map(([letter, items]) => (
+                    <div key={letter} className="manager-group-container">
+                      <div className="manager-letter-header">{letter}</div>
+                      <div className="manager-group-items">
+                        {items.map(note => (
+                          <div key={note.id} className="manager-note-item">
+                            <div className="manager-note-info">
+                              <FiFileText className="manager-note-icon" />
+                              <span className="manager-note-title">{(note.titulo || 'Sem Título').toUpperCase()}</span>
+                            </div>
+                            <div className="manager-note-actions">
+                              <button
+                                type="button"
+                                className="manager-action-btn edit-btn"
+                                onClick={() => handleEditNote(note.id)}
+                                title="Editar"
+                              >
+                                <FiEdit />
+                              </button>
+                              <button
+                                type="button"
+                                className="manager-action-btn delete-btn"
+                                onClick={() => handleDeleteNote(note.id)}
+                                title="Excluir"
+                              >
+                                <FaRegTrashCan />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-history-message">Nenhuma anotação encontrada.</p>
+                )
+              ) : (
+                Object.entries(getGroupedNotesByFolder()).map(([folder, items]) => (
+                  <div key={folder} className="manager-group-container">
+                    <div className="manager-folder-header">
+                      <GoFileDirectory size={22} style={{ marginRight: '8px', flexShrink: 0 }} />
+                      {folder}
+                    </div>
+                    <div className="manager-group-items">
+                      {items.length > 0 ? (
+                        items.map(note => (
+                          <div key={note.id} className="manager-note-item">
+                            <div className="manager-note-info">
+                              <FiFileText className="manager-note-icon" />
+                              <span className="manager-note-title">{(note.titulo || 'Sem Título').toUpperCase()}</span>
+                            </div>
+                            <div className="manager-note-actions">
+                              <button
+                                type="button"
+                                className="manager-action-btn edit-btn"
+                                onClick={() => handleEditNote(note.id)}
+                                title="Editar"
+                              >
+                                <FiEdit />
+                              </button>
+                              <button
+                                type="button"
+                                className="manager-action-btn delete-btn"
+                                onClick={() => handleDeleteNote(note.id)}
+                                title="Excluir"
+                              >
+                                <FaRegTrashCan />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="no-history-message" style={{ margin: '10px 15px', textAlign: 'left' }}>Nenhuma anotação nesta pasta.</p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {activeModal === 'EDIT_NOTE' && (
+        <div className='modal-overlay fade-in' onClick={() => { setActiveModal(null); setEditingNote(null); }} >
+          <div className='modal-container' onClick={(e) => e.stopPropagation()}>
+            <h2 className='modal-title'>Editar Anotação</h2>
+            <form onSubmit={handleUpdateNote} className='modal-form'>
+              <div className='modal-row'>
+                <div className="modal-form-group flex-3">
+                  <label htmlFor="editTitle">NOME DA ANOTAÇÃO:</label>
+                  <input
+                    type="text"
+                    id="editTitle"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-form-group">
+                <label htmlFor="editDescription">Descrição:</label>
+                <textarea
+                  className='modal-input-description'
+                  id="editDescription"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="modal-actions-container">
+                <button type="button" className="btn-cancel" onClick={() => { setActiveModal('GESTAO'); setEditingNote(null); }}>cancelar</button>
+                <button type="submit" className="btn-save">Salvar Alterações</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+
+
     </div>
   )
 }
 
-export default Home
+export default Home;
