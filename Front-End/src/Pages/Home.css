@@ -190,26 +190,51 @@
 .modal-input-description {
     height: 113px;
     resize: none;
-    font-family: 'Montserrat';
+    font-family: 'Montserrat', sans-serif;
     background-color: #3e3e3e;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 8px;
     color: #ffffff;
     padding: 12px;
     font-size: 16px;
     outline: none;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.modal-input-description:focus {
+    border-color: #ffffff;
+    background-color: #4a4a4a;
 }
 
 .modal-form-group input,
 .modal-form-group select {
     background-color: #3e3e3e;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 8px;
     color: #ffffff;
     padding: 12px;
     font-size: 16px;
     outline: none;
-    font-family: 'Montserrat';
+    font-family: 'Montserrat', sans-serif;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.modal-form-group input:focus,
+.modal-form-group select:focus {
+    border-color: #ffffff;
+    background-color: #4a4a4a;
+}
+
+.modal-form-group select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .icon-select-btn {
@@ -360,6 +385,45 @@
     font-family: 'bebas neue', sans-serif;
     font-size: 20px;
     letter-spacing: 1.5px;
+}
+
+.search-result-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-result-folder {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-top: 2px;
+    color: #b3b3b3;
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.search-result-list {
+    max-height: 250px;
+    margin-top: 15px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.search-result-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-result-list::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+}
+
+.search-result-list::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+.modal-form-group select option {
+    background-color: #2c2c2c;
+    color: #ffffff;
 }
 
 .recent-search {

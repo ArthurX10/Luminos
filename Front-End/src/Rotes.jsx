@@ -5,6 +5,7 @@ import AuthPage from "./Pages/AuthPage";
 import Home from "./Pages/Home";
 import NotFound from "./Pages/NotFound";
 import Calendar from "./Pages/Calendar";
+import Create from "./Pages/Create";
 
 function Rotes() {
   return (
@@ -16,7 +17,9 @@ function Rotes() {
           <Route path="/home" element={<Home />} />
           <Route path="*" element={<NotFound />} />
           <Route path= "/calendar" element={<Calendar/>}/>
-  
+          <Route path="/create" element={<Create/>}/>
+          <Route path="/create/:id" element={<Create/>}/>
+          
         </Routes>
       </BrowserRouter>  
   )

@@ -6,6 +6,7 @@ import { SlPresent } from 'react-icons/sl';
 import { FiFileText, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { GoFileDirectory } from 'react-icons/go';
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { FaGoogle } from "react-icons/fa";
 import api from '../api'
 
 const CATEGORY_COLORS = {
@@ -14,6 +15,7 @@ const CATEGORY_COLORS = {
   EVENTO:      '#34C759',
   ANIVERSARIO: '#FF2D55',
   AVALIACAO:   '#AF52DE',
+  GOOGLE:      '#EA4335',  // vermelho do Google
 };
 
 const CATEGORY_LABELS = {
@@ -22,16 +24,26 @@ const CATEGORY_LABELS = {
   EVENTO:      'EVENTO',
   ANIVERSARIO: 'ANIVERSÁRIO',
   AVALIACAO:   'AVALIAÇÃO',
+  GOOGLE:      'GOOGLE AGENDA',
 };
+
 
 function Calendar() {
   const navigate = useNavigate();
+
+  const handleGoogleConnect = async () =>{
+    const response = await api.get(`api/google/login/?user_id=${userId}`);
+    const { auth_url } = response.data;
+  
+    window.location.href = auth_url;
+  };
 
   const [currentDate,    setCurrentDate]    = useState(new Date());
   const [events,         setEvents]         = useState([]);
   const [selectedDay,    setSelectedDay]    = useState(null);
   const [activeCategory, setActiveCategory] = useState('TODOS');
   const [showAddModal,   setShowAddModal]   = useState(false);
+  const [googleConectado, setGoogleConectado] = useState(false);
 
   const [eventTitle,    setEventTitle]    = useState('');
   const [eventDesc,     setEventDesc]     = useState('');
@@ -45,11 +57,37 @@ function Calendar() {
     if (!userId) return;
 
     api.get(`api/eventos/${userId}/`)
-      .then(response => setEvents(response.data))
-      .catch(error => { console.error("Erro ao buscar eventos do backend:", error);
+      .then(response => {
+        const mappedEvents = response.data.map(ev => {
+          if (ev.descricao && ev.descricao.startsWith('[GOOGLE]')) {
+            return {
+              ...ev,
+              tipo: 'GOOGLE',
+              descricao: ev.descricao.replace(/^\[GOOGLE\]\n?/, ''),
+              origem: 'google'
+            };
+          }
+          return ev;
+        });
+        setEvents(mappedEvents);
+        if (mappedEvents.some(ev => ev.tipo === 'GOOGLE')) {
+          setGoogleConectado(true);
+        }
+      })
+      .catch(error => {
+        console.error("Erro ao buscar eventos do backend:", error);
+      });
+  }, [userId]);
 
-  });
-}, [userId]);
+  // Detecta retorno do Google OAuth
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('google') === 'conectado') {
+      setGoogleConectado(true);
+      window.history.replaceState({}, '', '/calendar');
+    }
+  }, []);
+
 
   const year  = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -85,6 +123,7 @@ function Calendar() {
     });
   }
 
+  // Filtra eventos (os do Google Agenda agora vêm diretamente do backend)
   const filteredEvents = events.filter(ev =>
     activeCategory === 'TODOS' || ev.tipo === activeCategory
   );
@@ -151,6 +190,7 @@ function Calendar() {
     { key: 'EVENTO',      label: 'EVENTO',      Icon: FiTag        },
     { key: 'ANIVERSARIO', label: 'ANIVERSÁRIO', Icon: SlPresent    },
     { key: 'AVALIACAO',   label: 'AVALIAÇÃO',   Icon: FiFileText   },
+    { key: 'GOOGLE',      label: 'GOOGLE AGENDAS',      Icon: FaGoogle     },
   ];
 
   return (
@@ -191,10 +231,11 @@ function Calendar() {
         </nav>
 
         <button
-          className="cal-btn-google"
-          onClick={() => alert('Sincronização com Google Agenda ativada!')}
+          className={`cal-btn-google ${googleConectado ? 'conectado' : ''}`}
+          onClick={handleGoogleConnect}
+          disabled={googleConectado}
         >
-          Conectar Google Agenda
+          {googleConectado ? 'Google Agenda Conectado ✓' : 'Conectar Google Agenda'}
         </button>
       </aside>
 

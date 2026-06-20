@@ -21,6 +21,7 @@ import { RiText } from "react-icons/ri";
 import { GoDeviceCameraVideo } from "react-icons/go";
 import { MdSunny } from "react-icons/md";
 import { GoFileDirectory } from "react-icons/go";
+import { useNavigate } from 'react-router-dom';
 
 
 function Home() {
@@ -47,9 +48,52 @@ function Home() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
+  const Navigate = useNavigate();
 
 
   const filteredNotes = notes.filter(note => (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase())));
+
+  const formatRelativeTime = (dataString) =>{
+    if (!dataString) return 'Sem Registro';
+  
+
+  const date = new Date(dataString);
+
+  const now = new Date();
+
+  const diffMs = now - date;
+
+  if(diffMs < 0) return "Agora mesmo";
+
+  const diffMins = Math.floor(diffMs /60000);
+
+  if(diffMins < 1) return "Agora mesmo";
+
+  if (diffMins < 60) return `Há ${diffMins} min`;
+
+  const diffHours = Math.floor(diffMins /60);
+
+  if (diffHours < 24) return `Há ${diffHours} h`;
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays === 1) return "Ontem";
+
+  if(diffDays <= 30) return `Há ${diffDays} dias`;
+
+  const diffMonths = Math.floor(diffDays / 30);
+
+  if(diffMonths === 1) return "Há 1 mês";
+
+  if (diffMonths < 12) return `Há ${diffMonths} meses`;
+
+  const diffYears = Math.floor(diffMonths / 12);
+
+  if(diffYears === 1) return "Há 1 ano";
+
+  return `Há ${diffYears} anos`;
+
+  };  
 
   const handleDeleteAccount = () => {
     const userId = localStorage.getItem('user_id')
@@ -137,7 +181,7 @@ function Home() {
     setEditingNote(noteToEdit);
     setNewTitle(noteToEdit.titulo || '');
     setNewDescription(noteToEdit.conteudo || '');
-    setSelectedFolder(noteToEdit.pasta_id || '');
+    setSelectedFolder(noteToEdit.diretorio || '');
     setActiveModal('EDIT_NOTE');
   }
 
@@ -149,14 +193,15 @@ function Home() {
     api.post(`api/notas/${userId}/`, {
       titulo: newTitle,
       conteudo: newDescription,
+      diretorio: selectedFolder || null,
     })
       .then(response => {
         setNotes(prevNotes => [response.data, ...prevNotes]);
         setNewTitle('');
         setNewDescription('');
         setSelectedFolder('');
-
         setActiveModal(null);
+        Navigate(`/create/${response.data.id}`)
       })
       .catch(error => console.log("Erro ao criar nota: ", error))
   }
@@ -169,21 +214,23 @@ function Home() {
     api.put(`api/notas/detalhe/${editingNote.id}/`, {
       titulo: newTitle,
       conteudo: newDescription,
+      diretorio: selectedFolder || null,
     })
       .then(response => {
-        alert('Anotação atualizada com sucesso!');
         setNotes(prevNotes => prevNotes.map(n => n.id === editingNote.id ? response.data : n));
         setNewTitle('');
         setNewDescription('');
         setSelectedFolder('');
-        setActiveModal(null);
-        setActiveModal('GESTAO')
+        setActiveModal('GESTAO');
       })
       .catch(error => {
         console.error('erro ao atualizar nota: ', error);
         alert('Erro ao atualizar a anotação')
       });
+  };
 
+  const handleNoteClick = (noteId) => {
+    Navigate(`/create/${noteId}`);
   };
 
 
@@ -205,23 +252,22 @@ function Home() {
 
 
   const getNoteFolder = (note) => {
-    const id = note.id || 0;
-    if (id % 3 === 0) return 'PESSOAL';
-    if (id % 3 === 1) return 'TRABALHO / FACULDADE';
-    return 'ESPORTE';
+    return note.diretorio || 'SEM PASTA';
   };
 
   const getGroupedNotesByFolder = () => {
     const folders = {
       'PESSOAL': [],
       'TRABALHO / FACULDADE': [],
-      'ESPORTE': []
-    }
+      'ESPORTES': [],
+      'SEM PASTA': [],
+    };
     notes.forEach(note => {
-      const folderName = getNoteFolder(note);
-      if (folders[folderName]) {
-        folders[folderName].push(note);
-      }
+      const dir = note.diretorio;
+      if (dir === 'pessoal') folders['PESSOAL'].push(note);
+      else if (dir === 'trabalho') folders['TRABALHO / FACULDADE'].push(note);
+      else if (dir === 'esporte') folders['ESPORTES'].push(note);
+      else folders['SEM PASTA'].push(note);
     });
     return folders;
   };
@@ -264,7 +310,7 @@ function Home() {
           const ordenadas = response.data.sort((a, b) =>
             new Date(b.data_criacao) - new Date(a.data_criacao)
           );
-          setNotes(ordenadas.slice(0, 4));
+          setNotes(ordenadas);
         })
         .catch(err => console.log(err));
     }
@@ -278,6 +324,7 @@ function Home() {
         userName={userName}
         notes={notes}
         onNewNote={() => setActiveModal("CREATE_NOTE")}
+        onProfileOpen={() => setActiveModal('PROFILE')}
         onSearchOpen={() => setActiveModal('SEARCH')}
         onHistoryOpen={() => setActiveModal('HISTORY')}
         onSettingsOpen={() => setActiveModal('SETTINGS')}
@@ -295,8 +342,8 @@ function Home() {
           <div className="home-section-content">
             {notes.length > 0 ? (
               <div className="home-cards-grid">
-                {notes.map((note) => (
-                  <div key={note.id} className="note-card" style={{ borderLeft: `5px solid ${note.cor_fundo || '#007aff'}` }}>
+                {notes.slice(0, 4).map((note) => (
+                  <div key={note.id} className="note-card" style={{ borderLeft: `5px solid ${note.cor_fundo || '#007aff'}` }} onClick={() => handleNoteClick(note.id)} >
                     <h3 className='note-card-title'>{note.titulo}</h3>
                     <p className='note-card-snippet'>{note.conteudo}</p>
                     <span className="note-card-date">{new Date(note.data_criacao).toLocaleDateString('pt-BR')}</span>
@@ -401,13 +448,26 @@ function Home() {
               {searchQuery ? "RESULTADO" : "RECENTES"}
             </div>
 
-            <div className="seach-result-list" style={{ maxHeight: "250px", marginTop: "15px", overflowY: "auto" }}>
+            <div className="search-result-list">
               {filteredNotes.length > 0 ? (filteredNotes.map((note) =>
-              (<div key={note.id} className='search-result-item'>
-                <span className="search-result-icon" >
+              (<div
+                key={note.id}
+                className='search-result-item'
+                style={{ cursor: 'pointer' }}
+                onClick={() => { setActiveModal(null); handleNoteClick(note.id); }}
+              >
+                <span className="search-result-icon">
                   <FiFileText color='#ffffff' />
                 </span>
-                <span className="search-result-title">{(note.titulo || 'Sem Título').toUpperCase()}</span>
+                <div className="search-result-info">
+                  <span className="search-result-title">{(note.titulo || 'Sem Título').toUpperCase()}</span>
+                  <span className="search-result-folder">
+                    {note.diretorio === 'pessoal'  ? 'PESSOAL'
+                    : note.diretorio === 'trabalho' ? 'TRABALHO / FACULDADE'
+                    : note.diretorio === 'esporte'  ? 'ESPORTES'
+                    : 'SEM PASTA'}
+                  </span>
+                </div>
               </div>
               ))) : (
                 <p className="no-notes-message">Nenhuma anotação encontrada.</p>
@@ -470,11 +530,16 @@ function Home() {
                   </div>
 
                   <div className="history-col col-loc">
-                    <span>DIRETORIO {index + 1}</span>
+                    <span>
+                      {note.diretorio === 'pessoal'  ? 'PESSOAL'
+                      : note.diretorio === 'trabalho' ? 'TRABALHO / FACULDADE'
+                      : note.diretorio === 'esporte'  ? 'ESPORTES'
+                      : 'SEM PASTA'}
+                    </span>
                   </div>
 
                   <div className="history-col col-time">
-                    <span>{index === 0 ? '5 min Atrás' : index === 1 ? '2 horas atrás' : index === 2 ? '3 dias Atrás' : '1 Ano Atrás'}</span>
+                    <span>{formatRelativeTime(note.data_criacao)}</span>
                   </div>
 
                   <div className="history-actions">
@@ -630,7 +695,7 @@ function Home() {
             <h2 className='modal-title'>PERSONALIZAR EXPERIÊNCIA</h2>
             <div className='experience-options-list'>
 
-              {/* Tamanho de Texto */}
+
               <div className='experience-option-item'>
                 <div className='experience-label-group'>
                   <RiText size={24} color='#ffffff' />
@@ -650,7 +715,7 @@ function Home() {
                 </div>
               </div>
 
-              {/* Reduzir Animações */}
+
               <div className='experience-option-item'>
                 <div className='experience-label-group'>
                   <GoDeviceCameraVideo size={24} color='#ffffff' />
@@ -688,9 +753,9 @@ function Home() {
           <div className='modal-container' onClick={(e) => e.stopPropagation()}>
             <h2 className='modal-title'>NOTIFICAÇÕES</h2>
 
-            <div className='experience-options-list'> {/* Reutilizando classe de espaçamento */}
+            <div className='experience-options-list'>
 
-              {/* Lembrete Diário */}
+
               <div className='experience-option-item'>
                 <div className='experience-label-group'>
                   <FaRegClock size={24} color='#ffffff' />
@@ -704,7 +769,7 @@ function Home() {
                 </div>
               </div>
 
-              {/* Frequência dos Lembretes */}
+
               <div className='experience-option-item'>
                 <div className='experience-label-group'>
                   <FaRegBell size={24} color='#ffffff' />
@@ -950,7 +1015,7 @@ function Home() {
           </div>
         </div>
       )}
-      
+
       {activeModal === 'EDIT_NOTE' && (
         <div className='modal-overlay fade-in' onClick={() => { setActiveModal(null); setEditingNote(null); }} >
           <div className='modal-container' onClick={(e) => e.stopPropagation()}>
@@ -969,7 +1034,7 @@ function Home() {
                 </div>
               </div>
               <div className="modal-form-group">
-                <label htmlFor="editDescription">Descrição:</label>
+                <label htmlFor="editDescription">DESCRIÇÃO:</label>
                 <textarea
                   className='modal-input-description'
                   id="editDescription"
@@ -977,6 +1042,19 @@ function Home() {
                   onChange={(e) => setNewDescription(e.target.value)}
                   required
                 />
+              </div>
+              <div className="modal-form-group">
+                <label htmlFor="editFolder">PASTA:</label>
+                <select
+                  id="editFolder"
+                  value={selectedFolder}
+                  onChange={(e) => setSelectedFolder(e.target.value)}
+                >
+                  <option value="">SEM PASTA</option>
+                  <option value="pessoal">PESSOAL</option>
+                  <option value="trabalho">TRABALHO/FACULDADE</option>
+                  <option value="esporte">ESPORTES</option>
+                </select>
               </div>
               <div className="modal-actions-container">
                 <button type="button" className="btn-cancel" onClick={() => { setActiveModal('GESTAO'); setEditingNote(null); }}>cancelar</button>

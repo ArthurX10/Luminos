@@ -16,7 +16,7 @@ import api from '../api'
 
 
 
-function Side({userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen, onSettingsOpen, onGestaoOpen }) {
+function Side({userName, notes = [], onNewNote, onProfileOpen, onSearchOpen, onHistoryOpen, onSettingsOpen, onGestaoOpen }) {
 
   const navigate = useNavigate();
 
@@ -101,7 +101,7 @@ function Side({userName, notes = [], onNewNote, onSearchOpen, onHistoryOpen, onS
       </div>
 
 
-      <div className="side-user" onClick={() => setActiveModal('PROFILE') }>
+      <div className="side-user" onClick={onProfileOpen}>
         <FaRegUserCircle />
         <p>{userName}</p>
       </div>
