@@ -1,9 +1,20 @@
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env'))
+
+# Permite OAuth via HTTP em desenvolvimento local (remover em produção)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuarios, Anotacoes, Etiquetas, ElementosVisuais, ConexoesLinhas, Notificacoes, Eventos
+from googleapiclient.discovery import build
+import google.oauth2.credentials
+import json
+
 
 from .serializers import (
     AnotacaoSerializer, UsuarioSerializer, EtiquetaSerializer, 
@@ -327,3 +338,147 @@ def logout_view(request):
     request.session.flush()
     return redirect('login')
 
+
+
+#Criado pelo João Arthur
+# Integração com o google 
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = "http://localhost:8000/api/google/callback/"
+GOOGLE_AUTH_URI = "https://accounts.google.com/o/oauth2/auth"
+GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+
+# Passo A: Redireciona o usuário para o Google (sem PKCE)
+@api_view(['GET'])
+def google_auth_redirect(request):
+    from requests_oauthlib import OAuth2Session
+    user_id = request.GET.get('user_id', '')
+    oauth = OAuth2Session(
+        client_id=GOOGLE_CLIENT_ID,
+        redirect_uri=GOOGLE_REDIRECT_URI,
+        scope=SCOPES,
+    )
+    auth_url, state = oauth.authorization_url(
+        GOOGLE_AUTH_URI,
+        access_type="offline",
+        prompt="consent",
+    )
+    
+    # Codifica o user_id junto com o state para recuperar no callback
+    state_with_user = f"{state}:{user_id}"
+    auth_url = auth_url.replace(f"state={state}", f"state={state_with_user}")
+    
+    request.session['oauth_state'] = state_with_user
+    return Response({"auth_url": auth_url})
+
+# Passo B: Google retorna aqui depois da permissão
+@api_view(['GET'])
+def google_auth_callback(request):
+    import json
+    from requests_oauthlib import OAuth2Session
+    from django.utils.dateparse import parse_datetime
+    from django.utils import timezone
+
+    # Usa o state da URL diretamente (evita problema de sessão cross-origin)
+    state_param = request.GET.get('state', '')
+    user_id = None
+    if ':' in state_param:
+        state_oauth, user_id_str = state_param.split(':', 1)
+        try:
+            user_id = int(user_id_str)
+        except ValueError:
+            pass
+    else:
+        state_oauth = state_param
+
+    oauth = OAuth2Session(
+        client_id=GOOGLE_CLIENT_ID,
+        redirect_uri=GOOGLE_REDIRECT_URI,
+        state=state_param,
+    )
+
+    # Monta a URL completa do callback para o fetch_token usar
+    full_callback_url = request.build_absolute_uri()
+
+    token = oauth.fetch_token(
+        GOOGLE_TOKEN_URI,
+        client_secret=GOOGLE_CLIENT_SECRET,
+        authorization_response=full_callback_url,
+        include_client_id=True,
+    )
+
+    # Busca os eventos do Google Calendar (Agenda Principal)
+    service = build('calendar', 'v3', credentials=google.oauth2.credentials.Credentials(
+        token=token['access_token']
+    ))
+    events_result = service.events().list(calendarId='primary', maxResults=30).execute()
+    items = events_result.get('items', [])
+
+    # Busca também os feriados brasileiros (Google Agenda Feriados)
+    try:
+        import datetime
+        time_min = (datetime.datetime.utcnow() - datetime.timedelta(days=60)).isoformat() + 'Z'
+        holidays_result = service.events().list(
+            calendarId='pt.brazilian#holiday@group.v.calendar.google.com',
+            timeMin=time_min,
+            singleEvents=True,
+            orderBy='startTime',
+            maxResults=30
+        ).execute()
+        holidays = holidays_result.get('items', [])
+        items = items + holidays
+    except Exception as e:
+        print("Erro ao buscar feriados da agenda do Google:", e)
+
+    if user_id:
+        # Remove eventos do Google anteriores desse usuário para não duplicar
+        Eventos.objects.filter(usuario_id=user_id, tipo='GOOGLE').delete()
+        Eventos.objects.filter(usuario_id=user_id, descricao__startswith='[GOOGLE]').delete()
+
+        # Salva os novos eventos vindos do Google Agenda
+        for ev in items:
+            start_raw = ev.get('start', {})
+            start_str = start_raw.get('dateTime') or start_raw.get('date')
+            start_dt = None
+            if start_str:
+                if len(start_str) == 10:  # YYYY-MM-DD (Evento de dia inteiro)
+                    start_dt = parse_datetime(f"{start_str}T00:00:00Z")
+                else:
+                    start_dt = parse_datetime(start_str)
+            
+            if not start_dt:
+                start_dt = timezone.now()
+
+            end_raw = ev.get('end', {})
+            end_str = end_raw.get('dateTime') or end_raw.get('date')
+            end_dt = None
+            if end_str:
+                if len(end_str) == 10:  # YYYY-MM-DD
+                    end_dt = parse_datetime(f"{end_str}T23:59:59Z")
+                else:
+                    end_dt = parse_datetime(end_str)
+
+            # Para burlar a constraint do banco 'eventos_tipo_check', salvamos como 'EVENTO'
+            # e colocamos o marcador '[GOOGLE]' na descrição para o front-end reconhecer.
+            desc = ev.get('description') or ''
+            google_desc = f"[GOOGLE]\n{desc}" if desc else "[GOOGLE]"
+
+            Eventos.objects.create(
+                usuario_id=user_id,
+                titulo=ev.get('summary') or 'Sem título',
+                descricao=google_desc,
+                tipo='EVENTO',
+                data_inicio=start_dt,
+                data_fim=end_dt
+            )
+
+    return redirect('http://localhost:5173/calendar?google=conectado')
+
+
+# Endpoint para o React buscar os eventos do Google salvos na sessão
+@api_view(['GET'])
+def google_eventos(request):
+    import json
+    eventos_json = request.session.get('google_eventos', '[]')
+    return Response({"eventos_google": json.loads(eventos_json)})

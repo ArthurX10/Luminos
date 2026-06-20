@@ -12,7 +12,7 @@ class AnotacaoSerializer(serializers.ModelSerializer):
         model = Anotacoes
         fields = ['id', 'titulo', 'conteudo', 'data_criacao',
                   'cor_fundo', 'tipo_layout', 'importante', 
-                  'data_prazo', 'dias_antecedencia_alerta']
+                  'data_prazo', 'dias_antecedencia_alerta', 'diretorio']
         read_only_fields = ['usuario']
 
 class EtiquetaSerializer(serializers.ModelSerializer):
@@ -38,7 +38,7 @@ class AnotacaoCompletaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Anotacoes
-        fields = ['id', 'usuario', 'titulo', 'conteudo', 'cor_fundo', 'tipo_layout', 'data_criacao', 'etiquetas', 'elementos', 'conexoes']
+        fields = ['id', 'usuario', 'titulo', 'conteudo', 'cor_fundo', 'tipo_layout', 'data_criacao', 'importante', 'diretorio', 'etiquetas', 'elementos', 'conexoes']
 
     def get_elementos(self, obj):
         elementos = ElementosVisuais.objects.filter(anotacao=obj)

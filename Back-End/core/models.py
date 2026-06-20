@@ -36,6 +36,7 @@ class Anotacoes(models.Model):
     etiquetas = models.ManyToManyField(Etiquetas, through='AnotacaoEtiquetas')
     data_prazo = models.DateTimeField(blank=True, null=True) #sprint 05
     dias_antecedencia_alerta = models.IntegerField(default=1)
+    diretorio = models.CharField(max_length=50, blank=True, null=True)  # PESSOAL | TRABALHO_FACULDADE | ESPORTES
 
     class Meta:
         managed = True

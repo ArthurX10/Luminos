@@ -5,7 +5,9 @@ from core.views import (
     api_login, api_cadastro, api_anotacoes, api_detalhe_anotacao, api_perfil_usuario,
     api_gerenciar_etiquetas, api_vincular_etiqueta, api_salvar_elemento_visual, api_salvar_conexao,
     api_alternar_importante, api_listar_notificacoes, api_marcar_notificacao_lida,
-    login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view, api_detalhe_evento, api_gerenciar_eventos
+    login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view,
+    api_detalhe_evento, api_gerenciar_eventos,
+    google_auth_redirect, google_auth_callback, google_eventos,
 )
 
 urlpatterns = [
@@ -51,4 +53,10 @@ urlpatterns = [
     path('excluir/<int:pk>/', excluir_anotacao, name='excluir_anotacao'),
     path('editar/<int:pk>/', editar_anotacao, name='editar_anotacao'),
     path('logout/', logout_view, name='logout'),
+
+    # Google Agenda
+    path('api/google/login/', google_auth_redirect),
+    path('api/google/callback/', google_auth_callback),
+    path('api/google/eventos/', google_eventos),
+
 ]
