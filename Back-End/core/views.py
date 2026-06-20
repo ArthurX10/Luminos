@@ -75,12 +75,17 @@ def api_anotacoes(request, user_id):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['PUT', 'DELETE'])
+# ADICIONADO: Suporte ao método GET para permitir que o front-end carregue os detalhes de uma anotação existente
+@api_view(['GET', 'PUT', 'DELETE'])
 def api_detalhe_anotacao(request, pk):
     try:
         nota = Anotacoes.objects.get(pk=pk)
     except Anotacoes.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == 'GET':
+        serializer = AnotacaoSerializer(nota)
+        return Response(serializer.data)
         
     if request.method == 'PUT':
         serializer = AnotacaoSerializer(nota, data=request.data)
@@ -105,6 +110,17 @@ def api_perfil_usuario(request, user_id):
         return Response(serializer.data)
 
     if request.method == 'PUT':
+        # ADICIONADO: Suporte para atualizar a senha do usuário no painel de configurações.
+        # Como o UsuarioSerializer não serializa a senha por questões de segurança,
+        # capturamos a nova senha pura, validamos o comprimento mínimo,
+        # geramos o hash seguro com make_password() e salvamos diretamente no modelo.
+        senha = request.data.get('senha')
+        if senha:
+            if len(senha) < 6:
+                return Response({"error": "A senha deve ter pelo menos 6 caracteres."}, status=status.HTTP_400_BAD_REQUEST)
+            usuario.senha_hash = make_password(senha)
+            usuario.save()
+
         serializer = UsuarioSerializer(usuario, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
