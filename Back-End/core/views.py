@@ -68,6 +68,7 @@ def api_anotacoes(request, user_id):
     if request.method == 'GET':
         etiqueta_id = request.query_params.get('etiqueta_id')
         apenas_importantes = request.query_params.get('apenas_importantes') == 'true'
+        diretorio = request.query_params.get('diretorio')
         notas = Anotacoes.objects.filter(usuario=usuario).order_by('-importante', '-data_criacao')
         
         if apenas_importantes:
@@ -75,6 +76,9 @@ def api_anotacoes(request, user_id):
 
         if etiqueta_id:
             notas = notas.filter(etiquetas__id=etiqueta_id)
+
+        if diretorio:
+            notas = notas.filter(diretorio=diretorio)
             
         serializer = AnotacaoCompletaSerializer(notas, many=True)
         return Response(serializer.data)
@@ -99,7 +103,10 @@ def api_detalhe_anotacao(request, pk):
         return Response(serializer.data)
         
     if request.method == 'PUT':
-        serializer = AnotacaoSerializer(nota, data=request.data)
+        # NOTA: Adicionado partial=True para permitir atualizações parciais pelo Front-End.
+        # Isso impede que campos não especificados no payload da requisição (como 'diretorio',
+        # 'cor_fundo', 'importante', etc.) sejam limpos/sobrescritos com valor nulo no banco.
+        serializer = AnotacaoSerializer(nota, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -109,7 +116,7 @@ def api_detalhe_anotacao(request, pk):
         nota.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'DELETE'])
 def api_perfil_usuario(request, user_id):
     try:
         usuario = Usuarios.objects.get(id=user_id)
@@ -137,6 +144,10 @@ def api_perfil_usuario(request, user_id):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'DELETE':
+        usuario.delete()
+        return Response({"message": "Usuário deletado com sucesso!"}, status=status.HTTP_204_NO_CONTENT)
     
 # ENDPOINTS DE ETIQUETAS
     
