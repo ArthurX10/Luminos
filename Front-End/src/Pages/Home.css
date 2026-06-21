@@ -46,6 +46,8 @@
 .home-section-title {
     color: #B3B3B3;
     font-size: 38px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1.5px;
 }
 
 .home-section-content {
@@ -57,7 +59,6 @@
     background-color: #242424;
     border: 1px solid #333;
     border-radius: 15px;
-    margin-bottom: 20px;
     padding: 20px;
     display: flex;
     flex-direction: column;

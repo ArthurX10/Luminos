@@ -48,52 +48,58 @@ function Home() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
+  const [events, setEvents] = useState([]);
   const Navigate = useNavigate();
 
 
   const filteredNotes = notes.filter(note => (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase())));
 
-  const formatRelativeTime = (dataString) =>{
+  const formatRelativeTime = (dataString) => {
     if (!dataString) return 'Sem Registro';
-  
 
-  const date = new Date(dataString);
 
-  const now = new Date();
+    const date = new Date(dataString);
 
-  const diffMs = now - date;
+    const now = new Date();
 
-  if(diffMs < 0) return "Agora mesmo";
+    const diffMs = now - date;
 
-  const diffMins = Math.floor(diffMs /60000);
+    if (diffMs < 0) return "Agora mesmo";
 
-  if(diffMins < 1) return "Agora mesmo";
+    const diffMins = Math.floor(diffMs / 60000);
 
-  if (diffMins < 60) return `Há ${diffMins} min`;
+    if (diffMins < 1) return "Agora mesmo";
 
-  const diffHours = Math.floor(diffMins /60);
+    if (diffMins < 60) return `Há ${diffMins} min`;
 
-  if (diffHours < 24) return `Há ${diffHours} h`;
+    const diffHours = Math.floor(diffMins / 60);
 
-  const diffDays = Math.floor(diffHours / 24);
+    if (diffHours < 24) return `Há ${diffHours} h`;
 
-  if (diffDays === 1) return "Ontem";
+    const diffDays = Math.floor(diffHours / 24);
 
-  if(diffDays <= 30) return `Há ${diffDays} dias`;
+    if (diffDays === 1) return "Ontem";
 
-  const diffMonths = Math.floor(diffDays / 30);
+    if (diffDays <= 30) return `Há ${diffDays} dias`;
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths === 1) return "Há 1 mês";
+    if (diffMonths < 12) return `Há ${diffMonths} meses`;
+    const diffYears = Math.floor(diffMonths / 12);
+    if (diffYears === 1) return "Há 1 ano";
+    return `Há ${diffYears} anos`;
 
-  if(diffMonths === 1) return "Há 1 mês";
+  };
 
-  if (diffMonths < 12) return `Há ${diffMonths} meses`;
-
-  const diffYears = Math.floor(diffMonths / 12);
-
-  if(diffYears === 1) return "Há 1 ano";
-
-  return `Há ${diffYears} anos`;
-
-  };  
+  const getEventColor = (tipo) => {
+    switch (tipo) {
+      case 'LEMBRETE': return '#FF9500';
+      case 'REUNIAO': return '#007AFF';
+      case 'AVALIACAO': return '#FF3B30';
+      case 'ANIVERSARIO': return '#AF52DE';
+      case 'EVENTO': return '#34C759';
+      default: return '#8E8E93';
+    }
+  };
 
   const handleDeleteAccount = () => {
     const userId = localStorage.getItem('user_id')
@@ -101,8 +107,10 @@ function Home() {
 
     api.delete(`api/perfil/${userId}/`)
       .then(response => {
-        alert("Conta deletada com sucesso!")
+        alert("Conta deletada com sucesso!");
+        localStorage.removeItem('user_id');
         setActiveModal(null);
+        Navigate('/login');
       })
       .catch(error => console.error("Erro ao deletar conta: ", error))
   }
@@ -313,6 +321,15 @@ function Home() {
           setNotes(ordenadas);
         })
         .catch(err => console.log(err));
+
+      api.get(`api/eventos/${userId}/`)
+        .then(response => {
+          const ordenados = response.data.sort((a, b) =>
+            new Date(a.data_inicio) - new Date(b.data_inicio)
+          );
+          setEvents(ordenados);
+        })
+        .catch(error => console.error("Erro ao carregar eventos: ", error));
     }
   }, []);
 
@@ -338,7 +355,7 @@ function Home() {
         </div>
 
         <div className="home-section">
-          <span className="home-section-title">Ultimas anotações</span>
+          <span className="home-section-title">ÚLTIMAS CRIAÇÕES</span>
           <div className="home-section-content">
             {notes.length > 0 ? (
               <div className="home-cards-grid">
@@ -352,6 +369,27 @@ function Home() {
                 ))}
               </div>) : (
               <p className="no-notes-message">Nenhuma anotação recente encontrada.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="home-section" style={{ marginTop: '40px' }}>
+          <span className="home-section-title">LEMBRETES</span>
+          <div className="home-section-content">
+            {events.length > 0 ? (
+              <div className="home-cards-grid">
+                {events.slice(0, 4).map((event) => (
+                  <div key={event.id} className="note-card" style={{ borderLeft: `5px solid ${getEventColor(event.tipo)}` }}>
+                    <h3 className="note-card-title">{event.titulo}</h3>
+                    <p className="note-card-snippet">{event.descricao || 'Sem descrição'}</p>
+                    <span className="note-card-date">
+                      {new Date(event.data_inicio).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="no-notes-message">Nenhum lembrete ou evento encontrado.</p>
             )}
           </div>
         </div>
@@ -462,10 +500,10 @@ function Home() {
                 <div className="search-result-info">
                   <span className="search-result-title">{(note.titulo || 'Sem Título').toUpperCase()}</span>
                   <span className="search-result-folder">
-                    {note.diretorio === 'pessoal'  ? 'PESSOAL'
-                    : note.diretorio === 'trabalho' ? 'TRABALHO / FACULDADE'
-                    : note.diretorio === 'esporte'  ? 'ESPORTES'
-                    : 'SEM PASTA'}
+                    {note.diretorio === 'pessoal' ? 'PESSOAL'
+                      : note.diretorio === 'trabalho' ? 'TRABALHO / FACULDADE'
+                        : note.diretorio === 'esporte' ? 'ESPORTES'
+                          : 'SEM PASTA'}
                   </span>
                 </div>
               </div>
@@ -531,10 +569,10 @@ function Home() {
 
                   <div className="history-col col-loc">
                     <span>
-                      {note.diretorio === 'pessoal'  ? 'PESSOAL'
-                      : note.diretorio === 'trabalho' ? 'TRABALHO / FACULDADE'
-                      : note.diretorio === 'esporte'  ? 'ESPORTES'
-                      : 'SEM PASTA'}
+                      {note.diretorio === 'pessoal' ? 'PESSOAL'
+                        : note.diretorio === 'trabalho' ? 'TRABALHO / FACULDADE'
+                          : note.diretorio === 'esporte' ? 'ESPORTES'
+                            : 'SEM PASTA'}
                     </span>
                   </div>
 
@@ -939,7 +977,7 @@ function Home() {
                       <div className="manager-group-items">
                         {items.map(note => (
                           <div key={note.id} className="manager-note-item">
-                            <div className="manager-note-info">
+                            <div className="manager-note-info" style={{ cursor: 'pointer' }} onClick={() => { setActiveModal(null); handleNoteClick(note.id); }}>
                               <FiFileText className="manager-note-icon" />
                               <span className="manager-note-title">{(note.titulo || 'Sem Título').toUpperCase()}</span>
                             </div>
@@ -980,7 +1018,7 @@ function Home() {
                       {items.length > 0 ? (
                         items.map(note => (
                           <div key={note.id} className="manager-note-item">
-                            <div className="manager-note-info">
+                            <div className="manager-note-info" style={{ cursor: 'pointer' }} onClick={() => { setActiveModal(null); handleNoteClick(note.id); }}>
                               <FiFileText className="manager-note-icon" />
                               <span className="manager-note-title">{(note.titulo || 'Sem Título').toUpperCase()}</span>
                             </div>
