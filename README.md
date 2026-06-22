@@ -9,6 +9,7 @@ Com o Luminos, o usuário pode criar anotações, organizar conteúdos, gerencia
 A ferramenta é um projeto web desenvolvido no contexto da disciplina de **Engenharia de Software**, ministrada pela professora **Cynthia Pinheiro Santiago**, no **Instituto Federal de Educação, Ciência e Tecnologia do Ceará (IFCE) – Campus Tianguá**, como atividade acadêmica do **5º semestre do curso de Bacharelado em Ciência da Computação.**
 
 O projeto tem como objetivo aplicar, na prática, conceitos de análise de requisitos, modelagem de sistemas, gerenciamento de projetos, desenvolvimento colaborativo e implementação de software, por meio da construção de uma plataforma voltada à organização pessoal e produtividade.
+
 ---
 
 ## ✨ Funcionalidades
