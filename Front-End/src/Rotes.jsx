@@ -7,6 +7,15 @@ import NotFound from "./Pages/NotFound";
 import Calendar from "./Pages/Calendar";
 import Create from "./Pages/Create";
 
+// Componente para proteger rotas privadas
+const ProtectedRoute = ({ children }) => {
+  const userId = localStorage.getItem('user_id');
+  if (!userId) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 function Rotes() {
   return (
     <BrowserRouter>
@@ -14,12 +23,11 @@ function Rotes() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<AuthPage />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
-          <Route path= "/calendar" element={<Calendar/>}/>
-          <Route path="/create" element={<Create/>}/>
-          <Route path="/create/:id" element={<Create/>}/>
-          
+          <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+          <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
+          <Route path="/create/:id" element={<ProtectedRoute><Create /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>  
   )
