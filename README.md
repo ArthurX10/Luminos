@@ -52,6 +52,9 @@ Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferent
 - `Trello`
 - `Figma`
 
+### Deploy
+- **Plataforma:** `Render`
+
 ---
 
 ## 🎨 Protótipo
