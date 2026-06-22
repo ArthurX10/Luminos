@@ -7,7 +7,6 @@ import NotFound from "./Pages/NotFound";
 import Calendar from "./Pages/Calendar";
 import Create from "./Pages/Create";
 
-// Componente para proteger rotas privadas
 const ProtectedRoute = ({ children }) => {
   const userId = localStorage.getItem('user_id');
   if (!userId) {

@@ -5,9 +5,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.test import APIClient
 from django.utils import timezone
 
-from core.models import Usuarios
-from core.models import Usuarios
-from core.models import Anotacoes
+from core.models import Usuarios, Anotacoes
 from core.models import Notificacoes
 from core.models import Eventos
 
@@ -117,7 +115,7 @@ class TestApiAnotacoes:
     def test_criar_anotacao(self, usuario):
 
         response = self.client.post(
-            f"/api/anotacoes/{usuario.id}/",
+            f"/api/notas/{usuario.id}/",
             {
                 "titulo": "POO",
                 "conteudo": "Estudar herança"
@@ -140,7 +138,7 @@ class TestApiAnotacoes:
         )
 
         response = self.client.get(
-            f"/api/anotacoes/{usuario.id}/"
+            f"/api/notas/{usuario.id}/"
         )
 
         assert response.status_code == 200
@@ -164,7 +162,7 @@ class TestAlternarImportante:
         assert nota.importante is False
 
         response = self.client.patch(
-            f"/api/anotacoes/{nota.id}/importante/"
+            f"/api/anotacao/{nota.id}/destacar/"
         )
 
         nota.refresh_from_db()
@@ -188,7 +186,7 @@ class TestNotificacoes:
         )
 
         response = self.client.patch(
-            f"/api/notificacoes/{notificacao.id}/lida/"
+            f"/api/notificacao/{notificacao.id}/lida/"
         )
 
         notificacao.refresh_from_db()

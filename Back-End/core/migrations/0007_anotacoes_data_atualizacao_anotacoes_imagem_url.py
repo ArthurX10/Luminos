@@ -2,6 +2,24 @@
 
 from django.db import migrations, models
 
+def add_imagem_url_if_not_exists(apps, schema_editor):
+    db_table = 'anotacoes'
+    column_name = 'imagem_url'
+    with schema_editor.connection.cursor() as cursor:
+        if schema_editor.connection.vendor == 'postgresql':
+            cursor.execute(f"""
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name='{db_table}' AND column_name='{column_name}';
+            """)
+            exists = cursor.fetchone()[0] > 0
+            if not exists:
+                cursor.execute(f'ALTER TABLE "{db_table}" ADD COLUMN "{column_name}" text;')
+        elif schema_editor.connection.vendor == 'sqlite':
+            cursor.execute(f"PRAGMA table_info({db_table});")
+            columns = [row[1] for row in cursor.fetchall()]
+            if column_name not in columns:
+                cursor.execute(f'ALTER TABLE "{db_table}" ADD COLUMN "{column_name}" text;')
 
 class Migration(migrations.Migration):
 
@@ -15,4 +33,17 @@ class Migration(migrations.Migration):
             name='data_atualizacao',
             field=models.DateTimeField(auto_now=True, null=True),
         ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(add_imagem_url_if_not_exists, reverse_code=migrations.RunPython.noop)
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='anotacoes',
+                    name='imagem_url',
+                    field=models.TextField(blank=True, null=True),
+                ),
+            ]
+        )
     ]
+
