@@ -54,6 +54,7 @@ Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferent
 
 ### Deploy
 - **Plataforma:** `Render`
+🔗 Link: https://luminos-front.onrender.com
 
 ---
 
