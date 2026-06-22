@@ -41,7 +41,8 @@ Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferent
 - **Framework/Biblioteca:** [Adicionar]
 
 ### Banco de Dados
-- **SGBD:** [Adicionar]
+- **SGBD:** `PostgreSQL`
+- **Hospedagem:** `Neon`
 
 ### Ferramentas
 - `Git`
