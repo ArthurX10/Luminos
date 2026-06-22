@@ -2,8 +2,14 @@
 
 import pytest
 from django.contrib.auth.hashers import make_password
-from app.models import Usuarios
+from rest_framework.test import APIClient
+from django.utils import timezone
 
+from core.models import Usuarios
+from core.models import Usuarios
+from core.models import Anotacoes
+from core.models import Notificacoes
+from core.models import Eventos
 
 @pytest.fixture
 def usuario():
@@ -13,11 +19,6 @@ def usuario():
     )
 
 #======================================================
-
-import pytest
-from rest_framework.test import APIClient
-from app.models import Usuarios
-
 
 @pytest.mark.django_db
 class TestApiCadastro:
@@ -58,10 +59,6 @@ class TestApiCadastro:
         assert response.status_code == 400
 
 # ======================================================
-
-import pytest
-from rest_framework.test import APIClient
-
 
 @pytest.mark.django_db
 class TestApiLogin:
@@ -111,11 +108,6 @@ class TestApiLogin:
 
   #=====================================================
 
-import pytest
-from rest_framework.test import APIClient
-from app.models import Anotacoes
-
-
 @pytest.mark.django_db
 class TestApiAnotacoes:
 
@@ -155,10 +147,6 @@ class TestApiAnotacoes:
         assert len(response.data) == 1
 
   #======================================================================
-import pytest
-from rest_framework.test import APIClient
-from app.models import Anotacoes
-
 
 @pytest.mark.django_db
 class TestAlternarImportante:
@@ -185,10 +173,6 @@ class TestAlternarImportante:
         assert nota.importante is True
 
 #=============================================================
-import pytest
-from rest_framework.test import APIClient
-from app.models import Notificacoes
-
 
 @pytest.mark.django_db
 class TestNotificacoes:
@@ -213,11 +197,6 @@ class TestNotificacoes:
         assert notificacao.lida is True
 
 #=================================================
-import pytest
-from django.utils import timezone
-from rest_framework.test import APIClient
-from app.models import Eventos
-
 
 @pytest.mark.django_db
 class TestEventos:
