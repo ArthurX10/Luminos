@@ -8,6 +8,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
         fields = ['id', 'nome', 'email', 'foto_url', 'data_criacao'] # adicionei o data de criação zé 
 
 class AnotacaoSerializer(serializers.ModelSerializer):
+    conteudo = serializers.CharField(allow_blank=True, required=False)
+
     class Meta:
         model = Anotacoes
         # Sprint 06 - Adicionada a descrição (resumo) separada do conteúdo principal
@@ -32,6 +34,7 @@ class ConexaoLinhaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AnotacaoCompletaSerializer(serializers.ModelSerializer):
+    conteudo = serializers.CharField(allow_blank=True, required=False)
     # Trazer dados aninhados para o React renderizar o mapa visual completo de uma vez
     etiquetas = EtiquetaSerializer(many=True, read_only=True)
     elementos = serializers.SerializerMethodField()
