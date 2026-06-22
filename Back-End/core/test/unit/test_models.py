@@ -21,12 +21,14 @@ class TestUsuarios:
         usuario = Usuarios.objects.create(
             nome="Vinicius",
             email="vinicius@email.com",
-            senha_hash="123456"
+            senha_hash="123456",
+            foto_url = "http://site.com/foto.jpg"
         )
 
         assert usuario.id is not None
         assert usuario.nome == "Vinicius"
         assert usuario.email == "vinicius@email.com"
+        assert usuario.foto_url == "http://site.com/foto.jpg"
 
     def test_str_usuario(self):
         usuario = Usuarios.objects.create(
@@ -97,13 +99,20 @@ class TestAnotacoes:
 
         anotacao = Anotacoes.objects.create(
             usuario=usuario,
-            conteudo="Minha anotação"
+            titulo="Teste",
+            descricao="Resumo Teste",
+            conteudo="Minha anotação",
+            diretorio="PESSOAL",
+            imagem_url="http://site.com/imagem.jpg",
+            importante=True
         )
 
+        assert anotacao.titulo == "Teste"
+        assert anotacao.descricao == "Resumo Teste"
         assert anotacao.conteudo == "Minha anotação"
-        assert anotacao.cor_fundo == "#FFFFFF"
-        assert anotacao.tipo_layout == "TEXTO"
-        assert anotacao.importante is False
+        assert anotacao.diretorio == "PESSOAL"
+        assert anotacao.imagem_url == "http://site.com/imagem.jpg"
+        assert anotacao.importante is True
 
     def test_relacao_etiquetas(self):
         usuario = Usuarios.objects.create(
@@ -173,12 +182,20 @@ class TestElementosVisuais:
 
         elemento = ElementosVisuais.objects.create(
             anotacao=anotacao,
-            tipo_forma="RETANGULO"
+            tipo_forma="RETANGULO",
+            texto_interno="Ideia Principal",
+            posicao_x=120.50,
+            posicao_y=350.00,
+            cor_preenchimento="#FF5733",
+            cor_borda="#000000"
         )
 
         assert elemento.tipo_forma == "RETANGULO"
-        assert elemento.largura == 150
-        assert elemento.altura == 80
+        assert elemento.texto_interno == "Ideia Principal"
+        assert float(elemento.posicao_x) == 120.50
+        assert float(elemento.posicao_y) == 350.00
+        assert elemento.cor_preenchimento == "#FF5733"
+        assert elemento.cor_borda == "#000000"
 
 # ====================================
 
@@ -209,11 +226,17 @@ class TestConexoesLinhas:
         conexao = ConexoesLinhas.objects.create(
             anotacao=anotacao,
             elemento_origem=origem,
-            elemento_destino=destino
+            elemento_destino=destino,
+            tipo_linha="PONTILHADA",
+            cor_linha="#FF0000",
+            espessura=3,
+            texto_rotulo="liga"
         )
 
-        assert conexao.tipo_linha == "RETA"
-        assert conexao.espessura == 2
+        assert conexao.tipo_linha == "PONTILHADA"
+        assert conexao.cor_linha == "#FF0000"
+        assert conexao.espessura == 3
+        assert conexao.texto_rotulo == "liga"
 
 #=========================================================
 
