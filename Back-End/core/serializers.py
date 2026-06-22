@@ -15,7 +15,7 @@ class AnotacaoSerializer(serializers.ModelSerializer):
         # Sprint 06 - Adicionada a descrição (resumo) separada do conteúdo principal
         fields = ['id', 'titulo', 'descricao', 'conteudo', 'data_criacao',
                   'cor_fundo', 'tipo_layout', 'importante', 
-                  'data_prazo', 'dias_antecedencia_alerta', 'diretorio', 'imagem_url']
+                  'data_prazo', 'dias_antecedencia_alerta', 'diretorio', 'imagem_url', 'data_atualizacao']
         read_only_fields = ['usuario']
 
 class EtiquetaSerializer(serializers.ModelSerializer):
@@ -43,7 +43,7 @@ class AnotacaoCompletaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Anotacoes
         # Sprint 06 - Adicionada a descrição ao retorno completo
-        fields = ['id', 'usuario', 'titulo', 'descricao', 'conteudo', 'cor_fundo', 'tipo_layout', 'data_criacao', 'importante', 'diretorio', 'etiquetas', 'elementos', 'conexoes', 'imagem_url']
+        fields = ['id', 'usuario', 'titulo', 'descricao', 'conteudo', 'cor_fundo', 'tipo_layout', 'data_criacao', 'importante', 'diretorio', 'etiquetas', 'elementos', 'conexoes', 'imagem_url', 'data_atualizacao']
 
     def get_elementos(self, obj):
         elementos = ElementosVisuais.objects.filter(anotacao=obj)

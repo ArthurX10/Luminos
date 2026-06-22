@@ -333,9 +333,11 @@ function Home() {
 
       api.get(`api/notas/${userId}/`)
         .then(response => {
-          const ordenadas = response.data.sort((a, b) =>
-            new Date(b.data_criacao) - new Date(a.data_criacao)
-          );
+          const ordenadas = response.data.sort((a, b) => {
+            const dateB = new Date(b.data_atualizacao || b.data_criacao);
+            const dateA = new Date(a.data_atualizacao || a.data_criacao);
+            return dateB - dateA;
+          });
           setNotes(ordenadas);
         })
         .catch(err => console.log(err));

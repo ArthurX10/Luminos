@@ -39,6 +39,7 @@ class Anotacoes(models.Model):
     dias_antecedencia_alerta = models.IntegerField(default=1)
     diretorio = models.CharField(max_length=50, blank=True, null=True)  # PESSOAL | TRABALHO_FACULDADE | ESPORTES
     imagem_url = models.TextField(blank=True, null=True) # sprint 06 - url da imagem de capa/creative
+    data_atualizacao = models.DateTimeField(auto_now=True, blank=True, null=True) # sprint 06 - data de ultima edicao
 
     class Meta:
         managed = True

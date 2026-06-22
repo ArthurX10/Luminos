@@ -69,7 +69,7 @@ def api_anotacoes(request, user_id):
         etiqueta_id = request.query_params.get('etiqueta_id')
         apenas_importantes = request.query_params.get('apenas_importantes') == 'true'
         diretorio = request.query_params.get('diretorio')
-        notas = Anotacoes.objects.filter(usuario=usuario).order_by('-importante', '-data_criacao')
+        notas = Anotacoes.objects.filter(usuario=usuario).order_by('-importante', '-data_atualizacao', '-data_criacao')
         
         if apenas_importantes:
             notas = notas.filter(importante=True)
