@@ -37,8 +37,10 @@ Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferent
 - **Biblioteca:** `Django REST Framework (DRF)`
 
 ### Front-end
-- **Linguagem:** [Adicionar]
-- **Framework/Biblioteca:** [Adicionar]
+- **Estrutura:** `HTML`
+- **Estilização:** `CSS`
+- **Linguagem:** `JavaScript`
+- **Biblioteca:** `React`
 
 ### Banco de Dados
 - **SGBD:** `PostgreSQL`
