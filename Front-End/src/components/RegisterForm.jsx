@@ -23,7 +23,7 @@ function RegisterForm({ onSwitch }) {
     try {
       await api.post('api/cadastro/', {nome: username, email, password})
       alert('Conta criada com sucesso!')
-      navigate('/home');
+      onSwitch();
     } catch (error){
       alert(error.response.data.error);
     }
