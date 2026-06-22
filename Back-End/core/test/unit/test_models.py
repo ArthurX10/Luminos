@@ -1,6 +1,6 @@
 import pytest
 from django.db import IntegrityError
-from app.models import (
+from core.models import (
     Usuarios,
     Etiquetas,
     Anotacoes,
