@@ -75,7 +75,10 @@ function Side({userName, notes = [], onNewNote, onProfileOpen, onSearchOpen, onH
             notes.slice(0, 4).map((note) => (
               <li 
                 key={note.id}
-                className='side-recent-itens'>
+                className='side-recent-itens'
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/create/${note.id}`)}
+              >
                 <FiFileText />
                 {note.titulo || 'Sem Título'}
               </li>

@@ -87,7 +87,7 @@ function RegisterForm({ onSwitch }) {
           <label htmlFor="confirm-password">CONFIRMAR SENHA:</label>
           <div className="password-input-wrapper">
           <input 
-          type={showPassword ? "text" : "password"}
+          type={showConfirmPassword ? "text" : "password"}
           id="confirm-password" 
           placeholder='********'
           value = {confirmPassword}
