@@ -338,14 +338,51 @@
 }
 
 
+.editor-cover-section {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background-color: #151515;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    overflow: hidden;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: 1px solid #222;
+    transition: all 0.3s ease;
+}
+
+.editor-cover-section.has-cover {
+    border-color: #444;
+}
+
+.editor-cover-section.has-cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    transition: background 0.3s ease;
+    z-index: 1;
+}
+
+.editor-cover-section.has-cover:hover::before {
+    background: rgba(0, 0, 0, 0.6);
+}
+
 .editor-cover-placeholder{
   font-size: 64px;
   color: #222222;
+  z-index: 2;
 }
 
-.editor-btn-add-cover{
+.editor-btn-add-cover {
   background-color: #1a1a1a;
-  border:1px solid #333333;
+  border: 1px solid #333333;
   color: #888888;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 14px;
@@ -353,13 +390,29 @@
   padding: 6px 12px;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
-
-
+  z-index: 2;
 }
 
-
-.editor-btn-add-cover:hover{
+.editor-btn-add-cover:hover {
   background-color: #242424;
+  color: #ffffff;
+}
+
+.editor-btn-remove-cover {
+  background-color: rgba(255, 59, 48, 0.2);
+  border: 1px solid rgba(255, 59, 48, 0.4);
+  color: #ff3b30;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.editor-btn-remove-cover:hover {
+  background-color: #ff3b30;
   color: #ffffff;
 }
 

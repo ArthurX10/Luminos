@@ -41,6 +41,11 @@ function Create() {
     const [novaEtiquetaCor, setNovaEtiquetaCor] = useState('#007AFF');
     // Paleta de cores para etiquetas
     const CORES_ETIQUETA = ['#007AFF', '#34C759', '#FF3B30', '#AF52DE', '#FF9500', '#FF2D55', '#5AC8FA'];
+    
+    // Estados para Imagem URL / Capa
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [imagemUrl, setImagemUrl] = useState('');
+    const [tempImagemUrl, setTempImagemUrl] = useState('');
     const DIRETORIOS = [
         { key: 'pessoal', label: 'PESSOAL' },
         { key: 'trabalho', label: 'TRABALHO/FACULDADE' },
@@ -81,11 +86,13 @@ function Create() {
                     setTitulo(data.titulo || '');
                     setDescricao(data.descricao || '');
                     setConteudo(data.conteudo || '');
+                    setImagemUrl(data.imagem_url || '');
                     setDiretorioAtual(data.diretorio || null);
                     setInitialValues({
                         titulo: data.titulo || '',
                         descricao: data.descricao || '',
-                        conteudo: data.conteudo || ''
+                        conteudo: data.conteudo || '',
+                        imagemUrl: data.imagem_url || ''
                     });
                 })
                 .catch(error => {
@@ -95,8 +102,9 @@ function Create() {
             setTitulo('');
             setDescricao('');
             setConteudo('');
+            setImagemUrl('');
             setDiretorioAtual(null);
-            setInitialValues({ titulo: '', descricao: '', conteudo: '' });
+            setInitialValues({ titulo: '', descricao: '', conteudo: '', imagemUrl: '' });
         }
 
     }, [id]);
@@ -105,13 +113,14 @@ function Create() {
         if (initialValues) {
             if (titulo !== initialValues.titulo || 
                 descricao !== initialValues.descricao || 
-                conteudo !== initialValues.conteudo) {
+                conteudo !== initialValues.conteudo ||
+                imagemUrl !== initialValues.imagemUrl) {
                 setIsDirty(true);
             } else {
                 setIsDirty(false);
             }
         }
-    }, [titulo, descricao, conteudo, initialValues]);
+    }, [titulo, descricao, conteudo, imagemUrl, initialValues]);
 
     const fetchNotasDiretorio = (dirKey) => {
         const userId = localStorage.getItem('user_id');
@@ -162,6 +171,7 @@ function Create() {
             titulo: titulo || 'Sem Título',
             descricao: descricao || '',
             conteudo: conteudo,
+            imagem_url: imagemUrl,
         };
 
         if (id) {
@@ -169,7 +179,7 @@ function Create() {
                 .then(() => {
                     setSavedAt(new Date()); 
                     setIsDirty(false);
-                    setInitialValues({ titulo, descricao, conteudo });
+                    setInitialValues({ titulo, descricao, conteudo, imagemUrl });
                 })
                 .catch(error => console.error("Erro ao atualizar:", error))
         } else {
@@ -177,12 +187,22 @@ function Create() {
                 .then((response) => {
                     setSavedAt(new Date()); 
                     setIsDirty(false);     
-                    setInitialValues({ titulo, descricao, conteudo });
+                    setInitialValues({ titulo, descricao, conteudo, imagemUrl });
                     navigate(`/create/${response.data.id}`);
                 })
                 .catch(error => console.error("Erro ao criar: ", error));
         }
     }
+
+    const handleOpenImageModal = () => {
+        setTempImagemUrl(imagemUrl);
+        setShowImageModal(true);
+    };
+
+    const handleSaveImage = () => {
+        setImagemUrl(tempImagemUrl);
+        setShowImageModal(false);
+    };
 
 
     const getRelativeTime = (date) =>{
@@ -331,7 +351,7 @@ function Create() {
                             TIPOGRAFIA
                         </div>
 
-                        <div className='create-header-btn'>
+                        <div className='create-header-btn' onClick={handleOpenImageModal}>
                             <FaImage size={24} />
                             IMAGEM
                         </div>
@@ -349,6 +369,7 @@ function Create() {
                             <div className='notion-typo-row-section'>
                                 <span className='notion-typo-section-title'>Tipografia</span>
                                 <div className='notion-font-picker'>
+                                    
                                     {FONT_OPTIONS.map(f => (
                                         <div
                                             key={f}
@@ -436,11 +457,19 @@ function Create() {
                 )}
 
                 <div className={`create-main ${fullWidth ? 'full-width' : ''}`}>
-                    <div className="editor-cover-section">
-                        <FaImage className="editor-cover-placeholder" />
-                        <button className="editor-btn-add-cover" onClick={() => alert('Inserir imagem de capa')}>
-                            + ADICIONAR CAPA
+                    <div 
+                        className={`editor-cover-section ${imagemUrl ? 'has-cover' : ''}`}
+                        style={imagemUrl ? { backgroundImage: `url(${imagemUrl})` } : {}}
+                    >
+                        {!imagemUrl && <FaImage className="editor-cover-placeholder" />}
+                        <button className="editor-btn-add-cover" onClick={handleOpenImageModal}>
+                            {imagemUrl ? 'ALTERAR CAPA' : '+ ADICIONAR CAPA'}
                         </button>
+                        {imagemUrl && (
+                            <button className="editor-btn-remove-cover" onClick={() => setImagemUrl('')}>
+                                REMOVER CAPA
+                            </button>
+                        )}
                     </div>
                     <textarea
                         className="editor-content-textarea"
@@ -469,7 +498,6 @@ function Create() {
                 </div>
             </div>
 
-            {/* Modal de gerenciamento de etiquetas — abre sobre a tela do editor */}
             {showEtiquetasModal && (
                 <div className='modal-overlay fade-in' onClick={() => setShowEtiquetasModal(false)}>
                     <div className='modal-container etiquetas-modal-container' onClick={(e) => e.stopPropagation()}>
@@ -498,7 +526,6 @@ function Create() {
                                 </button>
                             </div>
 
-                            {/* Palete de cores */}
                             <div className="etiqueta-cor-picker">
                                 <span className="etiqueta-cor-label">COR:</span>
                                 {CORES_ETIQUETA.map(cor => (
@@ -547,6 +574,63 @@ function Create() {
                             >
                                 ✕ FECHAR
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showImageModal && (
+                <div className='modal-overlay fade-in' onClick={() => setShowImageModal(false)}>
+                    <div className='modal-container' onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        <h2 className='modal-title'>IMAGEM DE CAPA</h2>
+                        
+                        <div className="etiqueta-criar-form" style={{ gap: '20px' }}>
+                            <div className="modal-form-group">
+                                <label htmlFor="imageUrlInput">URL DA IMAGEM:</label>
+                                <input
+                                    id="imageUrlInput"
+                                    type="text"
+                                    className="etiqueta-nome-input"
+                                    placeholder="Cole o link da imagem aqui..."
+                                    value={tempImagemUrl}
+                                    onChange={(e) => setTempImagemUrl(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSaveImage(); } }}
+                                    autoFocus
+                                />
+                            </div>
+
+                            {tempImagemUrl && (
+                                <div className="image-preview-container" style={{
+                                    width: '100%',
+                                    height: '150px',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden',
+                                    border: '1px solid #444',
+                                    backgroundImage: `url(${tempImagemUrl})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    backgroundColor: '#151515'
+                                }} />
+                            )}
+
+                            <div className="modal-actions-container" style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
+                                <button
+                                    type="button"
+                                    className="btn-cancel"
+                                    onClick={() => setShowImageModal(false)}
+                                    style={{ flex: 1, backgroundColor: '#3e3e3e', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontFamily: 'Bebas Neue', fontSize: '18px', cursor: 'pointer', letterSpacing: '1px' }}
+                                >
+                                    CANCELAR
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn-save"
+                                    onClick={handleSaveImage}
+                                    style={{ flex: 1, backgroundColor: '#ffffff', color: '#000', border: 'none', padding: '12px', borderRadius: '8px', fontFamily: 'Bebas Neue', fontSize: '18px', cursor: 'pointer', letterSpacing: '1px' }}
+                                >
+                                    CONFIRMAR
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
