@@ -37,7 +37,7 @@ def api_cadastro(request):
         return Response({"error": "E-mail já cadastrado."}, status=status.HTTP_400_BAD_REQUEST)
         
     usuario = Usuarios.objects.create(email=email, senha_hash=make_password(senha))
-    return Response({"message": "Usuário criado!"}, status=status.HTTP_201_CREATED)
+    return Response({"message": "Usuário criado!", "user_id": usuario.id, "email": usuario.email}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 def api_login(request):
