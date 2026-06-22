@@ -27,7 +27,7 @@ function Create() {
     const [lineHeight, setLineHeight] = useState(1.6);
     const [customFont, setCustomFont] = useState('');
     const [diretorioAtual, setDiretorioAtual] = useState(null);
-    const [dirExpanded, setDirExpanded] = useState(null);
+    const [dirExpanded, setDirExpanded] = useState({});
     const [notasDiretorio, setNotasDiretorio] = useState({});
     const [isDirty, setIsDirty] = useState(false);
     const [savedAt, setSavedAt] = useState(null);
@@ -109,12 +109,10 @@ function Create() {
         const userId = localStorage.getItem('user_id');
         if (!userId) return;
 
-        if (dirExpanded === dirKey) {
-            setDirExpanded(null);
-            return;
-        }
-
-        setDirExpanded(dirKey);
+        setDirExpanded(prev => ({
+            ...prev,
+            [dirKey]: !prev[dirKey]
+        }));
 
         if (notasDiretorio[dirKey]) return; 
 
@@ -208,14 +206,31 @@ function Create() {
                             <div key={dir.key}>
                                 <div
                                     className={`create-diretorio ${diretorioAtual === dir.key ? 'active' : ''}`}
-                                    onClick={() => fetchNotasDiretorio(dir.key)}
+                                    onClick={() => {
+                                        if (diretorioAtual === dir.key) {
+                                            setDiretorioAtual(null);
+                                        } else {
+                                            setDiretorioAtual(dir.key);
+                                        }
+                                        if (!dirExpanded[dir.key]) {
+                                            fetchNotasDiretorio(dir.key);
+                                        }
+                                    }}
                                 >
-                                    <span className='create-dir-arrow'>{dirExpanded === dir.key ? '▾' : '▸'}</span>
+                                    <span 
+                                        className='create-dir-arrow'
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            fetchNotasDiretorio(dir.key);
+                                        }}
+                                    >
+                                        {dirExpanded[dir.key] ? '▾' : '▸'}
+                                    </span>
                                     <GoFileDirectory className='create-logo-icon' />
                                     {dir.label}
                                 </div>
 
-                                {dirExpanded === dir.key && (
+                                {dirExpanded[dir.key] && (
                                     <div className='create-dir-notas'>
                                         {!notasDiretorio[dir.key] ? (
                                             <div className='create-dir-nota-item muted'>Carregando...</div>
@@ -226,7 +241,10 @@ function Create() {
                                                 <div
                                                     key={nota.id}
                                                     className={`create-dir-nota-item ${String(nota.id) === String(id) ? 'current' : ''}`}
-                                                    onClick={() => navigate(`/create/${nota.id}`)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/create/${nota.id}`);
+                                                    }}
                                                 >
                                                     ↳ {nota.titulo ? nota.titulo.toUpperCase() : 'SEM TÍTULO'}
                                                 </div>
@@ -286,8 +304,8 @@ function Create() {
                             SALVAR
                         </div>
 
-                        <div className={`create-header-status ${isDirty ? 'draft' : 'saved'}`}>
-                            {titulo ? titulo.toUpperCase() : "SEM TÍTULO"} - {isDirty ? "RASCUNHO" : getRelativeTime(savedAt)};
+                        <div className="create-header-status">
+                            {titulo ? titulo.toUpperCase() : "SEM TÍTULO"} - {isDirty ? "RASCUNHO" : getRelativeTime(savedAt)}
                         </div>
 
                         <div className='create-header-btn' onClick={() => setShowTypoPanel(!showTypoPanel)}>
@@ -412,13 +430,6 @@ function Create() {
                         value={titulo}
                         onChange={(e) => setTitulo(e.target.value)}
                         placeholder="SEM TÍTULO"
-                    />
-                    <input
-                        type="text"
-                        className="editor-description-input"
-                        value={descricao}
-                        onChange={(e) => setDescricao(e.target.value)}
-                        placeholder="Adicione uma descrição..."
                     />
                     <textarea
                         className="editor-content-textarea"
