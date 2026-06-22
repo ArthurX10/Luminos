@@ -52,7 +52,11 @@ function Home() {
   const Navigate = useNavigate();
 
 
-  const filteredNotes = notes.filter(note => (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase())));
+  const filteredNotes = notes.filter(note => 
+    (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || 
+    (note.descricao && note.descricao.toLowerCase().includes(searchQuery.toLowerCase())) || 
+    (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const formatRelativeTime = (dataString) => {
     if (!dataString) return 'Sem Registro';
@@ -188,7 +192,7 @@ function Home() {
 
     setEditingNote(noteToEdit);
     setNewTitle(noteToEdit.titulo || '');
-    setNewDescription(noteToEdit.conteudo || '');
+    setNewDescription(noteToEdit.descricao || '');
     setSelectedFolder(noteToEdit.diretorio || '');
     setActiveModal('EDIT_NOTE');
   }
@@ -200,7 +204,8 @@ function Home() {
 
     api.post(`api/notas/${userId}/`, {
       titulo: newTitle,
-      conteudo: newDescription,
+      descricao: newDescription,
+      conteudo: '',
       diretorio: selectedFolder || null,
     })
       .then(response => {
@@ -221,7 +226,8 @@ function Home() {
 
     api.put(`api/notas/detalhe/${editingNote.id}/`, {
       titulo: newTitle,
-      conteudo: newDescription,
+      descricao: newDescription,
+      conteudo: editingNote.conteudo,
       diretorio: selectedFolder || null,
     })
       .then(response => {
@@ -362,7 +368,7 @@ function Home() {
                 {notes.slice(0, 4).map((note) => (
                   <div key={note.id} className="note-card" style={{ borderLeft: `5px solid ${note.cor_fundo || '#007aff'}` }} onClick={() => handleNoteClick(note.id)} >
                     <h3 className='note-card-title'>{note.titulo}</h3>
-                    <p className='note-card-snippet'>{note.conteudo}</p>
+                    <p className='note-card-snippet'>{note.descricao || 'Sem descrição'}</p>
                     <span className="note-card-date">{new Date(note.data_criacao).toLocaleDateString('pt-BR')}</span>
 
                   </div>

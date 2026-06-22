@@ -637,3 +637,30 @@
     border: none;
     cursor: pointer;
 }
+
+
+.create-header-status.draft{
+    color: #ff9500;
+    transition: color 0.3s;
+}
+
+.create-header-status.saved{
+    color: #34c759;
+    transition: color 0.3s;
+}
+
+.editor-description-input {
+    background: none;
+    border: none;
+    outline: none;
+    color: #888888;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    width: 100%;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.editor-description-input::placeholder {
+    color: #444444;
+}

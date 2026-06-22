@@ -29,7 +29,10 @@ function Create() {
     const [diretorioAtual, setDiretorioAtual] = useState(null);
     const [dirExpanded, setDirExpanded] = useState(null);
     const [notasDiretorio, setNotasDiretorio] = useState({});
-
+    const [isDirty, setIsDirty] = useState(false);
+    const [savedAt, setSavedAt] = useState(null);
+    const [descricao, setDescricao] = useState('');
+    const [initialValues, setInitialValues] = useState(null);
     const DIRETORIOS = [
         { key: 'pessoal', label: 'PESSOAL' },
         { key: 'trabalho', label: 'TRABALHO/FACULDADE' },
@@ -66,16 +69,41 @@ function Create() {
         if (id) {
             api.get(`api/notas/detalhe/${id}/`)
                 .then(response => {
-                    setTitulo(response.data.titulo || '');
-                    setConteudo(response.data.conteudo || '');
-                    setDiretorioAtual(response.data.diretorio || null);
+                    const data = response.data;
+                    setTitulo(data.titulo || '');
+                    setDescricao(data.descricao || '');
+                    setConteudo(data.conteudo || '');
+                    setDiretorioAtual(data.diretorio || null);
+                    setInitialValues({
+                        titulo: data.titulo || '',
+                        descricao: data.descricao || '',
+                        conteudo: data.conteudo || ''
+                    });
                 })
                 .catch(error => {
                     console.error("Erro ao buscar a nota", error);
                 });
+        } else {
+            setTitulo('');
+            setDescricao('');
+            setConteudo('');
+            setDiretorioAtual(null);
+            setInitialValues({ titulo: '', descricao: '', conteudo: '' });
         }
 
     }, [id]);
+
+    useEffect(() => {
+        if (initialValues) {
+            if (titulo !== initialValues.titulo || 
+                descricao !== initialValues.descricao || 
+                conteudo !== initialValues.conteudo) {
+                setIsDirty(true);
+            } else {
+                setIsDirty(false);
+            }
+        }
+    }, [titulo, descricao, conteudo, initialValues]);
 
     const fetchNotasDiretorio = (dirKey) => {
         const userId = localStorage.getItem('user_id');
@@ -121,25 +149,40 @@ function Create() {
 
         const notaData = {
             titulo: titulo || 'Sem Título',
+            descricao: descricao || '',
             conteudo: conteudo,
         };
 
         if (id) {
             api.put(`api/notas/detalhe/${id}/`, notaData)
                 .then(() => {
-                    alert("Anotação Atualizada");
-                    navigate('/home');
+                    setSavedAt(new Date()); 
+                    setIsDirty(false);
+                    setInitialValues({ titulo, descricao, conteudo });
                 })
                 .catch(error => console.error("Erro ao atualizar:", error))
         } else {
             api.post(`api/notas/${userId}/`, notaData)
-                .then(() => {
-                    alert("Anotação Criada!");
-                    navigate('/home');
+                .then((response) => {
+                    setSavedAt(new Date()); 
+                    setIsDirty(false);     
+                    setInitialValues({ titulo, descricao, conteudo });
+                    navigate(`/create/${response.data.id}`);
                 })
                 .catch(error => console.error("Erro ao criar: ", error));
         }
     }
+
+
+    const getRelativeTime = (date) =>{
+        if(!date) return 'RASCUNHO';
+        const diffMs = Date.now() - date.getTime();
+        const diffMin = Math.floor(diffMs/60000);
+        if (diffMin < 1) return "SALVO HÁ POUCO TEMPO";
+        if (diffMin === 1) return 'SALVO HÁ 1 MIN';
+        return `SALVO HÁ ${diffMin} MIN`;
+    }
+
 
     return (
         <div className="create-container">
@@ -243,8 +286,8 @@ function Create() {
                             SALVAR
                         </div>
 
-                        <div className='create-header-status'>
-                            {titulo ? `${titulo.toUpperCase()} - STATUS` : "SEM TÍTULO - STATUS"}
+                        <div className={`create-header-status ${isDirty ? 'draft' : 'saved'}`}>
+                            {titulo ? titulo.toUpperCase() : "SEM TÍTULO"} - {isDirty ? "RASCUNHO" : getRelativeTime(savedAt)};
                         </div>
 
                         <div className='create-header-btn' onClick={() => setShowTypoPanel(!showTypoPanel)}>
@@ -370,11 +413,31 @@ function Create() {
                         onChange={(e) => setTitulo(e.target.value)}
                         placeholder="SEM TÍTULO"
                     />
+                    <input
+                        type="text"
+                        className="editor-description-input"
+                        value={descricao}
+                        onChange={(e) => setDescricao(e.target.value)}
+                        placeholder="Adicione uma descrição..."
+                    />
                     <textarea
                         className="editor-content-textarea"
                         value={conteudo}
                         onChange={(e) => setConteudo(e.target.value)}
                         placeholder="CAMPO CRIATIVO"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Tab' || e.key === 'TAB'){
+                                e.preventDefault();
+                                const start = e.target.selectionStart;
+                                const end = e.target.selectionEnd;
+                                const novoConteudo = conteudo.substring(0, start) + '\t' + conteudo.substring(end);
+                                setConteudo(novoConteudo);
+                                requestAnimationFrame(() => {
+                                    e.target.selectionStart = start + 1;
+                                    e.target.selectionEnd = start + 1;
+                                });
+                            }
+                        }}
                         style={{
                             fontFamily: getActiveFont(),
                             fontSize: `${fontSize}px`,

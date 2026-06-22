@@ -28,6 +28,7 @@ class Etiquetas(models.Model):
 class Anotacoes(models.Model):
     usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE, db_column='usuario_id') 
     titulo = models.CharField(max_length=150, blank=True, null=True)
+    descricao = models.TextField(blank=True, null=True) # Sprint 06 - Descrição rápida / metadado da anotação
     conteudo = models.TextField()
     data_criacao = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     cor_fundo = models.CharField(max_length=7, default='#FFFFFF') #sprint 03
