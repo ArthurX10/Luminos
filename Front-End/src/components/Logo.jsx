@@ -1,5 +1,5 @@
 import React from 'react'
-import logo from '../assets/Palmeiras_logo.svg.png'
+import logo from '../assets/Logo.png'
 
 function Logo() {
   return (

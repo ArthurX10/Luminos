@@ -355,7 +355,7 @@ def logout_view(request):
 # Integração com o google 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = "http://localhost:8000/api/google/callback/"
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/google/callback/")
 GOOGLE_AUTH_URI = "https://accounts.google.com/o/oauth2/auth"
 GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -484,7 +484,8 @@ def google_auth_callback(request):
                 data_fim=end_dt
             )
 
-    return redirect('http://localhost:5173/calendar?google=conectado')
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    return redirect(f"{frontend_url}/calendar?google=conectado")
 
 
 # Endpoint para o React buscar os eventos do Google salvos na sessão
