@@ -8,7 +8,7 @@ import { TbLetterT } from "react-icons/tb";
 import { FaImage } from "react-icons/fa6";
 import { PiSquaresFourLight } from "react-icons/pi";
 import { GoFileDirectory } from "react-icons/go";
-import Logo from './Logo'
+import Logo from '../components/Logo';
 import { FaTag } from "react-icons/fa6";
 
 
@@ -146,7 +146,7 @@ function Create() {
             {/*Sidebar */}
             <div className="create-sidebar">
                 <div className='create-logo'>
-                    <img src={Logo} style={{ width: '60px', height: '60px' }} />
+                    <Logo />
                     <h1 className='create-logo-text'>LUMINOS</h1>
 
                 </div>
