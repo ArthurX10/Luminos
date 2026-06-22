@@ -8,6 +8,7 @@ import { GoFileDirectory } from 'react-icons/go';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { FaGoogle } from "react-icons/fa";
 import api from '../api'
+import Logo from '../components/Logo';
 
 const CATEGORY_COLORS = {
   LEMBRETE:    '#FFCC00',
@@ -15,7 +16,7 @@ const CATEGORY_COLORS = {
   EVENTO:      '#34C759',
   ANIVERSARIO: '#FF2D55',
   AVALIACAO:   '#AF52DE',
-  GOOGLE:      '#EA4335',  // vermelho do Google
+  GOOGLE:      '#EA4335', 
 };
 
 const CATEGORY_LABELS = {
@@ -79,7 +80,6 @@ function Calendar() {
       });
   }, [userId]);
 
-  // Detecta retorno do Google OAuth
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('google') === 'conectado') {
@@ -123,7 +123,6 @@ function Calendar() {
     });
   }
 
-  // Filtra eventos (os do Google Agenda agora vêm diretamente do backend)
   const filteredEvents = events.filter(ev =>
     activeCategory === 'TODOS' || ev.tipo === activeCategory
   );
@@ -198,7 +197,7 @@ function Calendar() {
 
       <aside className="cal-sidebar">
         <div className="cal-logo">
-          <span className="cal-logo-icon">⊹</span>
+          <Logo />
           <h1 className="cal-logo-text">LUMINOS</h1>
         </div>
 
