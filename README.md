@@ -23,14 +23,14 @@ Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferent
 
 ---
 
-### 🤓☝️ Tecnologias utilizadas
+## 🤓☝️ Tecnologias utilizadas
 - **Linguagens:** Back-end: Python / Front-end: 
 - **IDE:** 
 - **Bibliotecas:** 
 
 ---
 
-🎨 Protótipo
+## 🎨 Protótipo
 
 Protótipo desenvolvido no Figma:
 
@@ -38,7 +38,7 @@ Protótipo desenvolvido no Figma:
 
 ---
 
-📋 Gerenciamento do Projeto
+## 📋 Gerenciamento do Projeto
 
 Quadro de organização e acompanhamento das atividades:
 
