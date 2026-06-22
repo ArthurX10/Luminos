@@ -33,16 +33,11 @@ function Create() {
     const [savedAt, setSavedAt] = useState(null);
     const [descricao, setDescricao] = useState('');
     const [initialValues, setInitialValues] = useState(null);
-    // Estado do modal de etiquetas da sidebar
     const [showEtiquetasModal, setShowEtiquetasModal] = useState(false);
-    // Nome da nova etiqueta sendo digitada no modal
     const [novaEtiquetaNome, setNovaEtiquetaNome] = useState('');
-    // Cor selecionada para a nova etiqueta
     const [novaEtiquetaCor, setNovaEtiquetaCor] = useState('#007AFF');
-    // Paleta de cores para etiquetas
     const CORES_ETIQUETA = ['#007AFF', '#34C759', '#FF3B30', '#AF52DE', '#FF9500', '#FF2D55', '#5AC8FA'];
-    
-    // Estados para Imagem URL / Capa
+
     const [showImageModal, setShowImageModal] = useState(false);
     const [imagemUrl, setImagemUrl] = useState('');
     const [tempImagemUrl, setTempImagemUrl] = useState('');
@@ -122,7 +117,6 @@ function Create() {
         }
     }, [titulo, descricao, conteudo, imagemUrl, initialValues]);
 
-    // Persistência da tipografia no localStorage por nota
     useEffect(() => {
         if (id) {
             const savedFontStyle = localStorage.getItem(`typo_fontStyle_${id}`);
@@ -178,7 +172,6 @@ function Create() {
     };
 
 
-    // Cria uma nova etiqueta e adiciona ao estado local
     const handleCreateNewTag = () => {
         const userId = localStorage.getItem('user_id');
         if (!novaEtiquetaNome.trim() || !userId) return;
@@ -191,7 +184,7 @@ function Create() {
             .catch(error => console.error("Erro ao criar etiqueta", error));
     };
 
-    // Exclui uma etiqueta do banco e atualiza o estado local
+
     const handleDeleteTag = (etiquetaId) => {
         api.delete(`api/etiqueta/${etiquetaId}/`)
             .then(() => {
@@ -217,6 +210,7 @@ function Create() {
                     setSavedAt(new Date()); 
                     setIsDirty(false);
                     setInitialValues({ titulo, descricao, conteudo, imagemUrl });
+                    navigate('/home');
                 })
                 .catch(error => console.error("Erro ao atualizar:", error))
         } else {
@@ -225,7 +219,7 @@ function Create() {
                     setSavedAt(new Date()); 
                     setIsDirty(false);     
                     setInitialValues({ titulo, descricao, conteudo, imagemUrl });
-                    navigate(`/create/${response.data.id}`);
+                    navigate('/home');
                 })
                 .catch(error => console.error("Erro ao criar: ", error));
         }
@@ -332,7 +326,8 @@ function Create() {
                 <div className='create-section-list'>
                     <div className="create-section-etiquetas-header">
                         <div className='create-section-subtitle'>ETIQUETAS</div>
-                        {/* Botão que abre o modal de gerenciamento de etiquetas */}
+
+
                         <button
                             className="create-btn-add-tag"
                             onClick={() => setShowEtiquetasModal(true)}
