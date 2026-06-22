@@ -21,11 +21,11 @@ function RegisterForm({ onSwitch }) {
     }
 
     try {
-      await api.post('api/cadastro/', {nome: username, email, password})
-      alert('Conta criada com sucesso!')
-      localStorage.getItem('user_id', response.data.user_id);
+      const response = await api.post('api/cadastro/', {nome: username, email, password});
+      alert('Conta criada com sucesso!');
+      localStorage.setItem('user_id', response.data.user_id);
       localStorage.setItem('user_email', response.data.email);
-      navigate('/home')
+      navigate('/home');
     } catch (error){
       alert(error.response.data.error);
     }
