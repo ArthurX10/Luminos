@@ -20,6 +20,30 @@ Com o Luminos, o usuário pode criar anotações, organizar conteúdos, gerencia
 
 ## 🎯 Objetivo
 Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferentes perfis de usuários gerenciem informações pessoais, acadêmicas e profissionais sem enfrentar curvas de aprendizado complexas.
+
+---
+
+### 🤓☝️ Tecnologias utilizadas
+- **Linguagens:** Back-end: Python / Front-end: 
+- **IDE:** 
+- **Bibliotecas:** 
+
+---
+
+🎨 Protótipo
+
+Protótipo desenvolvido no Figma:
+
+🔗 Link: [Adicionar link do Figma]
+
+---
+
+📋 Gerenciamento do Projeto
+
+Quadro de organização e acompanhamento das atividades:
+
+🔗 Link: [Adicionar link do Trello]
+
 ---
 
 ## 👥 Equipe
