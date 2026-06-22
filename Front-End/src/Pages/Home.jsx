@@ -70,6 +70,8 @@ function Home() {
     (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const futureEvents = events.filter(event => new Date(event.data_inicio) >= new Date());
+
   const formatRelativeTime = (dataString) => {
     if (!dataString) return 'Sem Registro';
 
@@ -434,9 +436,9 @@ function Home() {
         <div className="home-section" style={{ marginTop: '40px' }}>
           <span className="home-section-title">LEMBRETES</span>
           <div className="home-section-content">
-            {events.length > 0 ? (
+            {futureEvents.length > 0 ? (
               <div className="home-cards-grid">
-                {events.slice(0, 4).map((event) => (
+                {futureEvents.slice(0, 4).map((event) => (
                   <div key={event.id} className="note-card" style={{ borderLeft: `5px solid ${getEventColor(event.tipo)}` }}>
                     <h3 className="note-card-title">{event.titulo}</h3>
                     <p className="note-card-snippet">{event.descricao || 'Sem descrição'}</p>
