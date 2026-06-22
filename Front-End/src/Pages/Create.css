@@ -228,7 +228,6 @@
 }
 
 
-/* Área do Editor e Inputs */
 .editor-area {
     display: flex;
     flex-direction: column;
@@ -365,8 +364,6 @@
 }
 
 
-/* ========== Painel de Tipografia ========== */
-
 .notion-typo-overlay {
     position: fixed;
     top: 0;
@@ -391,7 +388,7 @@
     z-index: 1000;
 }
 
-/* Cards Ag (Default / Serif / Mono) */
+
 .notion-typo-fonts {
     display: flex;
     gap: 8px;
@@ -438,14 +435,13 @@
     color: #ffffff;
 }
 
-/* Divisor */
 .notion-typo-divider {
     height: 1px;
     background-color: #4d4d4d;
     margin: 6px 8px;
 }
 
-/* Linhas com Toggle */
+
 .notion-typo-row {
     display: flex;
     align-items: center;
@@ -477,7 +473,6 @@
     color: #b3b3b3;
 }
 
-/* Toggle Switch */
 .notion-toggle {
     position: relative;
     width: 36px;
@@ -521,13 +516,12 @@
     transform: translateX(16px);
 }
 
-/* Full Width */
+
 .create-main.full-width {
     padding: 40px 30px;
     max-width: 100%;
 }
 
-/* Seções (Tipografia, Tamanho, Espaçamento) */
 .notion-typo-row-section {
     padding: 8px 12px;
 }
@@ -542,7 +536,7 @@
     display: block;
 }
 
-/* Grid de Fontes */
+
 .notion-font-picker {
     display: flex;
     flex-wrap: wrap;
@@ -588,7 +582,7 @@
     color: #FF3B30;
 }
 
-/* Sliders */
+
 .notion-slider-header {
     display: flex;
     justify-content: space-between;

@@ -424,13 +424,6 @@ function Create() {
                             + ADICIONAR CAPA
                         </button>
                     </div>
-                    <input
-                        type="text"
-                        className="editor-title-input"
-                        value={titulo}
-                        onChange={(e) => setTitulo(e.target.value)}
-                        placeholder="SEM TÍTULO"
-                    />
                     <textarea
                         className="editor-content-textarea"
                         value={conteudo}
