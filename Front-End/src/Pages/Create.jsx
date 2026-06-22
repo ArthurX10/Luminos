@@ -122,6 +122,43 @@ function Create() {
         }
     }, [titulo, descricao, conteudo, imagemUrl, initialValues]);
 
+    // Persistência da tipografia no localStorage por nota
+    useEffect(() => {
+        if (id) {
+            const savedFontStyle = localStorage.getItem(`typo_fontStyle_${id}`);
+            const savedSmallText = localStorage.getItem(`typo_smallText_${id}`);
+            const savedFullWidth = localStorage.getItem(`typo_fullWidth_${id}`);
+            const savedFontSize = localStorage.getItem(`typo_fontSize_${id}`);
+            const savedLineHeight = localStorage.getItem(`typo_lineHeight_${id}`);
+            const savedCustomFont = localStorage.getItem(`typo_customFont_${id}`);
+
+            if (savedFontStyle !== null) setFontStyle(savedFontStyle);
+            if (savedSmallText !== null) setSmallText(savedSmallText === 'true');
+            if (savedFullWidth !== null) setFullWidth(savedFullWidth === 'true');
+            if (savedFontSize !== null) setFontSize(Number(savedFontSize));
+            if (savedLineHeight !== null) setLineHeight(Number(savedLineHeight));
+            if (savedCustomFont !== null) setCustomFont(savedCustomFont);
+        } else {
+            setFontStyle('default');
+            setSmallText(false);
+            setFullWidth(false);
+            setFontSize(18);
+            setLineHeight(1.6);
+            setCustomFont('');
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (id) {
+            localStorage.setItem(`typo_fontStyle_${id}`, fontStyle);
+            localStorage.setItem(`typo_smallText_${id}`, String(smallText));
+            localStorage.setItem(`typo_fullWidth_${id}`, String(fullWidth));
+            localStorage.setItem(`typo_fontSize_${id}`, String(fontSize));
+            localStorage.setItem(`typo_lineHeight_${id}`, String(lineHeight));
+            localStorage.setItem(`typo_customFont_${id}`, customFont);
+        }
+    }, [id, fontStyle, smallText, fullWidth, fontSize, lineHeight, customFont]);
+
     const fetchNotasDiretorio = (dirKey) => {
         const userId = localStorage.getItem('user_id');
         if (!userId) return;
