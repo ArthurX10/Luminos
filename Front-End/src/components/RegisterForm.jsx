@@ -1,6 +1,7 @@
 import './AuthForms.css';
 import api from '../api';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function RegisterForm({ onSwitch }) {
   const [username, setUsername] = useState('');
@@ -9,6 +10,8 @@ function RegisterForm({ onSwitch }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const navigate = useNavigate();
+
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -20,7 +23,7 @@ function RegisterForm({ onSwitch }) {
     try {
       await api.post('api/cadastro/', {nome: username, email, password})
       alert('Conta criada com sucesso!')
-      onSwitch();
+      navigate('/home');
     } catch (error){
       alert(error.response.data.error);
     }
