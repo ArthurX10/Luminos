@@ -50,17 +50,12 @@ function Home() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [events, setEvents] = useState([]);
-  // Estado centralizado de etiquetas — compartilhado entre o modal CREATE_NOTE e o modal ETIQUETAS
   const [etiquetas, setEtiquetas] = useState([]);
-  // Nome da nova etiqueta sendo digitada no modal ETIQUETAS
   const [novaEtiquetaNome, setNovaEtiquetaNome] = useState('');
-  // Cor selecionada para a nova etiqueta (palete fixa)
   const [novaEtiquetaCor, setNovaEtiquetaCor] = useState('#007AFF');
-  // IDs das etiquetas selecionadas para vincular à nota sendo criada
   const [etiquetasSelecionadas, setEtiquetasSelecionadas] = useState([]);
   const Navigate = useNavigate();
 
-  // Paleta de cores disponíveis para etiquetas
   const CORES_ETIQUETA = ['#007AFF', '#34C759', '#FF3B30', '#AF52DE', '#FF9500', '#FF2D55', '#5AC8FA'];
 
 
@@ -423,8 +418,18 @@ function Home() {
                   <div key={note.id} className="note-card" style={{ borderLeft: `5px solid ${note.cor_fundo || '#007aff'}` }} onClick={() => handleNoteClick(note.id)} >
                     <h3 className='note-card-title'>{note.titulo}</h3>
                     <p className='note-card-snippet'>{note.descricao || 'Sem descrição'}</p>
-                    <span className="note-card-date">{new Date(note.data_criacao).toLocaleDateString('pt-BR')}</span>
-
+                    
+                    {note.etiquetas && note.etiquetas.length > 0 && (
+                      <div className="note-card-tags" style={{ display: 'flex', gap: '5px', marginTop: '8px', flexWrap: 'wrap' }}>
+                        {note.etiquetas.map(tag => (
+                          <span key={tag.id} style={{ backgroundColor: tag.cor, color: '#fff', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                            {tag.nome.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <span className="note-card-date" style={{ marginTop: '10px', display: 'block' }}>{new Date(note.data_criacao).toLocaleDateString('pt-BR')}</span>
                   </div>
                 ))}
               </div>) : (
