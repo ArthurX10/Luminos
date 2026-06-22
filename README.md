@@ -28,9 +28,9 @@ Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferent
 ---
 
 ## 🤓☝️ Tecnologias utilizadas
-- **Linguagens:** Back-end: Python / Front-end: 
-- **IDE:** 
-- **Bibliotecas:** 
+- **Back-end:** *Linguagem:* `Python` | **Framework:** `Django` | **Biblioteca:** `Django REST Framework (DRF)`
+- **Front-end**
+- **Banco de dados:** 
 
 ---
 
