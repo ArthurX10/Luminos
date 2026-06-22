@@ -3,7 +3,8 @@ from django.urls import path
 # ADICIONADO: As novas funções da Sprint 03 foram incluídas no import aqui em cima
 from core.views import (
     api_login, api_cadastro, api_anotacoes, api_detalhe_anotacao, api_perfil_usuario,
-    api_gerenciar_etiquetas, api_vincular_etiqueta, api_salvar_elemento_visual, api_salvar_conexao,
+    api_gerenciar_etiquetas, api_detalhe_etiqueta, api_vincular_etiqueta,
+    api_salvar_elemento_visual, api_salvar_conexao,
     api_alternar_importante, api_listar_notificacoes, api_marcar_notificacao_lida,
     login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view,
     api_detalhe_evento, api_gerenciar_eventos,
@@ -20,9 +21,12 @@ urlpatterns = [
     path('api/notas/detalhe/<int:pk>/', api_detalhe_anotacao, name='api_gerenciar_nota'),
     path('api/perfil/<int:user_id>/', api_perfil_usuario, name='api_perfil_usuario'),
 
-    # Gerenciamento de Etiquetas do usuário (CORRIGIDO: removido o 'views.')
+    # Gerenciamento de Etiquetas do usuário
     path('api/etiquetas/<int:user_id>/', api_gerenciar_etiquetas),
     path('api/etiquetas/<int:user_id>', api_gerenciar_etiquetas),
+    # ADICIONADO: Endpoint para excluir uma etiqueta pelo seu ID (usado no modal de etiquetas)
+    path('api/etiqueta/<int:etiqueta_id>/', api_detalhe_etiqueta),
+    path('api/etiqueta/<int:etiqueta_id>', api_detalhe_etiqueta),
     
     # Vinculo N:M entre Nota e Etiqueta
     path('api/anotacao/<int:nota_id>/vincular-etiqueta/', api_vincular_etiqueta),

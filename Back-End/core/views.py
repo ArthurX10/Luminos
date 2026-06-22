@@ -167,6 +167,19 @@ def api_gerenciar_etiquetas(request, user_id):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# ADICIONADO: Endpoint para excluir uma etiqueta específica pelo seu ID.
+# Utilizado pelo modal de gerenciamento de etiquetas no Front-End (Home.jsx e Create.jsx).
+@api_view(['DELETE'])
+def api_detalhe_etiqueta(request, etiqueta_id):
+    try:
+        etiqueta = Etiquetas.objects.get(pk=etiqueta_id)
+    except Etiquetas.DoesNotExist:
+        return Response({"error": "Etiqueta não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'DELETE':
+        etiqueta.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 @api_view(['POST'])
 def api_vincular_etiqueta(request, nota_id):
     etiqueta_id = request.data.get('etiqueta_id')

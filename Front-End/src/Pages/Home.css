@@ -1093,3 +1093,272 @@
 .manager-action-btn.delete-btn:hover {
     color: #ff4d4d;
 }
+
+/* ===== MODAL DE GERENCIAMENTO DE ETIQUETAS ===== */
+
+.etiquetas-modal-container {
+    max-width: 500px;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header com label + botão gerenciar lado a lado */
+.etiqueta-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.btn-gerenciar-etiquetas {
+    background: none;
+    border: 1px solid #555;
+    border-radius: 20px;
+    color: #b3b3b3;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.btn-gerenciar-etiquetas:hover {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+/* Formulário de criação dentro do modal */
+.etiqueta-criar-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 8px;
+}
+
+.etiqueta-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.etiqueta-nome-input {
+    flex: 1;
+    background-color: #3e3e3e;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 10px 14px;
+    font-size: 15px;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.etiqueta-nome-input:focus {
+    border-color: #ffffff;
+}
+
+.etiqueta-nome-input::placeholder {
+    color: #666;
+}
+
+.btn-criar-etiqueta {
+    background-color: #3e3e3e;
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-criar-etiqueta:hover:not(:disabled) {
+    background-color: #555;
+}
+
+.btn-criar-etiqueta:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Palete de cores */
+.etiqueta-cor-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.etiqueta-cor-label {
+    color: #888;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.etiqueta-cor-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.etiqueta-cor-dot:hover {
+    transform: scale(1.2);
+}
+
+.etiqueta-cor-dot.selecionada {
+    border-color: #ffffff;
+    transform: scale(1.25);
+}
+
+/* Divisor */
+.etiqueta-divider {
+    height: 1px;
+    background-color: #444;
+    margin: 12px 0;
+}
+
+/* Lista de etiquetas no modal */
+.etiquetas-lista {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    padding-right: 4px;
+}
+
+.etiquetas-lista::-webkit-scrollbar {
+    width: 6px;
+}
+
+.etiquetas-lista::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+}
+
+.etiqueta-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background-color: #3e3e3e;
+    border-radius: 10px;
+    transition: background-color 0.2s;
+}
+
+.etiqueta-list-item:hover {
+    background-color: #4a4a4a;
+}
+
+.etiqueta-list-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.etiqueta-cor-preview {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.etiqueta-list-nome {
+    color: #f2f2f2;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+
+.btn-excluir-etiqueta {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-excluir-etiqueta:hover {
+    color: #ff4d4d;
+    background-color: rgba(255, 77, 77, 0.1);
+}
+
+/* Rodapé do modal */
+.etiqueta-modal-footer {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.btn-voltar-criar-nota {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.btn-voltar-criar-nota:hover {
+    color: #ffffff;
+}
+
+/* Chips de seleção rápida de etiqueta no CREATE_NOTE */
+.etiqueta-quick-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.etiqueta-quick-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background-color: #3e3e3e;
+    border: 1px solid #555;
+    color: #888;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.etiqueta-quick-item:hover {
+    border-color: #888;
+    color: #ccc;
+}
+
+.etiqueta-quick-item.selected {
+    background-color: rgba(255,255,255,0.07);
+    border-color: var(--tag-cor, #007AFF);
+    color: #ffffff;
+}
+
+.etiqueta-empty-hint {
+    color: #666;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-style: italic;
+}

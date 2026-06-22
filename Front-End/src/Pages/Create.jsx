@@ -33,6 +33,14 @@ function Create() {
     const [savedAt, setSavedAt] = useState(null);
     const [descricao, setDescricao] = useState('');
     const [initialValues, setInitialValues] = useState(null);
+    // Estado do modal de etiquetas da sidebar
+    const [showEtiquetasModal, setShowEtiquetasModal] = useState(false);
+    // Nome da nova etiqueta sendo digitada no modal
+    const [novaEtiquetaNome, setNovaEtiquetaNome] = useState('');
+    // Cor selecionada para a nova etiqueta
+    const [novaEtiquetaCor, setNovaEtiquetaCor] = useState('#007AFF');
+    // Paleta de cores para etiquetas
+    const CORES_ETIQUETA = ['#007AFF', '#34C759', '#FF3B30', '#AF52DE', '#FF9500', '#FF2D55', '#5AC8FA'];
     const DIRETORIOS = [
         { key: 'pessoal', label: 'PESSOAL' },
         { key: 'trabalho', label: 'TRABALHO/FACULDADE' },
@@ -124,22 +132,27 @@ function Create() {
     };
 
 
+    // Cria uma nova etiqueta e adiciona ao estado local
     const handleCreateNewTag = () => {
         const userId = localStorage.getItem('user_id');
-        const nomeTag = prompt("Digite o nome da nova tag:");
+        if (!novaEtiquetaNome.trim() || !userId) return;
 
-        if (!nomeTag || !userId)
-            return;
-
-        const cores = ["#34C759", "#FF3B30", "#007AFF", "#AF52DE", "#FF9500"];
-        const corTag = cores[Math.floor(Math.random() * cores.length)];
-
-        api.post(`api/etiquetas/${userId}/`, { nome: nomeTag, cor: corTag })
+        api.post(`api/etiquetas/${userId}/`, { nome: novaEtiquetaNome.trim(), cor: novaEtiquetaCor })
             .then(response => {
-                setEtiqueta([...etiqueta, response.data]);
+                setEtiqueta(prev => [...prev, response.data]);
+                setNovaEtiquetaNome('');
             })
             .catch(error => console.error("Erro ao criar etiqueta", error));
-    }
+    };
+
+    // Exclui uma etiqueta do banco e atualiza o estado local
+    const handleDeleteTag = (etiquetaId) => {
+        api.delete(`api/etiqueta/${etiquetaId}/`)
+            .then(() => {
+                setEtiqueta(prev => prev.filter(e => e.id !== etiquetaId));
+            })
+            .catch(error => console.error('Erro ao excluir etiqueta:', error));
+    };
 
     const handleSave = () => {
         const userId = localStorage.getItem('user_id');
@@ -260,11 +273,16 @@ function Create() {
                 <hr className='create-sidebar-divider' />
 
                 <div className='create-section-list'>
-                    <div className='create-section-subtitle'>ETIQUETAS</div>
-
-                    <button className="create-btn-add-tag" onClick={handleCreateNewTag}>
-                        + ADICIONAR ETIQUETA
-                    </button>
+                    <div className="create-section-etiquetas-header">
+                        <div className='create-section-subtitle'>ETIQUETAS</div>
+                        {/* Botão que abre o modal de gerenciamento de etiquetas */}
+                        <button
+                            className="create-btn-add-tag"
+                            onClick={() => setShowEtiquetasModal(true)}
+                        >
+                            + GERENCIAR
+                        </button>
+                    </div>
 
                     <div className="create-tags-container">
                         {etiqueta.map(tag => (
@@ -450,6 +468,89 @@ function Create() {
                     />
                 </div>
             </div>
+
+            {/* Modal de gerenciamento de etiquetas — abre sobre a tela do editor */}
+            {showEtiquetasModal && (
+                <div className='modal-overlay fade-in' onClick={() => setShowEtiquetasModal(false)}>
+                    <div className='modal-container etiquetas-modal-container' onClick={(e) => e.stopPropagation()}>
+                        <h2 className='modal-title'>ETIQUETAS</h2>
+
+                        {/* Formulário de criação */}
+                        <div className="etiqueta-criar-form">
+                            <div className="etiqueta-input-row">
+                                <input
+                                    type="text"
+                                    className="etiqueta-nome-input"
+                                    placeholder="Nome da etiqueta..."
+                                    value={novaEtiquetaNome}
+                                    onChange={(e) => setNovaEtiquetaNome(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCreateNewTag(); } }}
+                                    maxLength={30}
+                                    autoFocus
+                                />
+                                <button
+                                    type='button'
+                                    className="btn-criar-etiqueta"
+                                    onClick={handleCreateNewTag}
+                                    disabled={!novaEtiquetaNome.trim()}
+                                >
+                                    CRIAR
+                                </button>
+                            </div>
+
+                            {/* Palete de cores */}
+                            <div className="etiqueta-cor-picker">
+                                <span className="etiqueta-cor-label">COR:</span>
+                                {CORES_ETIQUETA.map(cor => (
+                                    <div
+                                        key={cor}
+                                        className={`etiqueta-cor-dot ${novaEtiquetaCor === cor ? 'selecionada' : ''}`}
+                                        style={{ backgroundColor: cor }}
+                                        onClick={() => setNovaEtiquetaCor(cor)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="etiqueta-divider" />
+
+                        {/* Lista de etiquetas existentes */}
+                        <div className="etiquetas-lista">
+                            {etiqueta.length === 0 ? (
+                                <p className="etiqueta-empty-hint">Nenhuma etiqueta criada ainda.</p>
+                            ) : (
+                                etiqueta.map(tag => (
+                                    <div key={tag.id} className="etiqueta-list-item">
+                                        <div className="etiqueta-list-info">
+                                            <span className="etiqueta-cor-preview" style={{ backgroundColor: tag.cor }} />
+                                            <FaTag size={14} color={tag.cor} />
+                                            <span className="etiqueta-list-nome">{tag.nome.toUpperCase()}</span>
+                                        </div>
+                                        <button
+                                            type='button'
+                                            className="btn-excluir-etiqueta"
+                                            onClick={() => handleDeleteTag(tag.id)}
+                                            title="Excluir etiqueta"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <div className="etiqueta-modal-footer">
+                            <button
+                                type='button'
+                                className="btn-voltar-criar-nota"
+                                onClick={() => setShowEtiquetasModal(false)}
+                            >
+                                ✕ FECHAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
