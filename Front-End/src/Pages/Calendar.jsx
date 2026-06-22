@@ -8,6 +8,7 @@ import { GoFileDirectory } from 'react-icons/go';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { FaGoogle } from "react-icons/fa";
 import api from '../api'
+import Logo from '../assets/LogoT.png';
 
 const CATEGORY_COLORS = {
   LEMBRETE:    '#FFCC00',
