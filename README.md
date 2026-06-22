@@ -13,6 +13,7 @@ O projeto tem como objetivo aplicar, na prática, conceitos de análise de requi
 ---
 
 ## ✨ Funcionalidades
+
 - 📝 Criação e edição de anotações
 - 📁 Organização por pastas e etiquetas
 - 🕒 Histórico de atividades
@@ -23,14 +24,30 @@ O projeto tem como objetivo aplicar, na prática, conceitos de análise de requi
 ---
 
 ## 🎯 Objetivo
+
 Oferecer uma plataforma simples, intuitiva e organizada, permitindo que diferentes perfis de usuários gerenciem informações pessoais, acadêmicas e profissionais sem enfrentar curvas de aprendizado complexas.
 
 ---
 
-## 🤓☝️ Tecnologias utilizadas
-- **Back-end:** **Linguagem:** `Python` | **Framework:** `Django` | **Biblioteca:** `Django REST Framework (DRF)`
-- **Front-end**
-- **Banco de dados:** 
+## 🤓☝️ Tecnologias Utilizadas
+
+### Back-end
+- **Linguagem:** `Python`
+- **Framework:** `Django`
+- **Biblioteca:** `Django REST Framework (DRF)`
+
+### Front-end
+- **Linguagem:** [Adicionar]
+- **Framework/Biblioteca:** [Adicionar]
+
+### Banco de Dados
+- **SGBD:** [Adicionar]
+
+### Ferramentas
+- `Git`
+- `GitHub`
+- `Trello`
+- `Figma`
 
 ---
 
