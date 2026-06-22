@@ -14,7 +14,7 @@ const phrases = [
 ];
 
 function AuthPage() {
-  const [introComplete, setIntroComplete] = useState(true);
+  const [introComplete, setIntroComplete] = useState(false);
   const [authMode, setAuthMode] = useState('login'); 
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
@@ -63,6 +63,9 @@ function AuthPage() {
   if (!introComplete) {
     return (
       <div className="typewriter-overlay">
+        <button className="skip-intro-btn" onClick={() => setIntroComplete(true)}>
+          Pular &rarr;
+        </button>
         <p className="typewriter-text">
           {displayedText}
           <span className="typewriter-cursor">|</span>
