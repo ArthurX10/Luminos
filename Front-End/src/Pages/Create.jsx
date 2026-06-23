@@ -41,6 +41,7 @@ function Create() {
     const [showImageModal, setShowImageModal] = useState(false);
     const [imagemUrl, setImagemUrl] = useState('');
     const [tempImagemUrl, setTempImagemUrl] = useState('');
+    const [activeNoteTags, setActiveNoteTags] = useState([]);
     const DIRETORIOS = [
         { key: 'pessoal', label: 'PESSOAL' },
         { key: 'trabalho', label: 'TRABALHO/FACULDADE' },
@@ -83,11 +84,13 @@ function Create() {
                     setConteudo(data.conteudo || '');
                     setImagemUrl(data.imagem_url || '');
                     setDiretorioAtual(data.diretorio || null);
+                    setActiveNoteTags(data.etiquetas || []);
                     setInitialValues({
                         titulo: data.titulo || '',
                         descricao: data.descricao || '',
                         conteudo: data.conteudo || '',
-                        imagemUrl: data.imagem_url || ''
+                        imagemUrl: data.imagem_url || '',
+                        diretorio: data.diretorio || null
                     });
                 })
                 .catch(error => {
@@ -99,7 +102,8 @@ function Create() {
             setConteudo('');
             setImagemUrl('');
             setDiretorioAtual(null);
-            setInitialValues({ titulo: '', descricao: '', conteudo: '', imagemUrl: '' });
+            setActiveNoteTags([]);
+            setInitialValues({ titulo: '', descricao: '', conteudo: '', imagemUrl: '', diretorio: null });
         }
 
     }, [id]);
@@ -109,13 +113,14 @@ function Create() {
             if (titulo !== initialValues.titulo || 
                 descricao !== initialValues.descricao || 
                 conteudo !== initialValues.conteudo ||
-                imagemUrl !== initialValues.imagemUrl) {
+                imagemUrl !== initialValues.imagemUrl ||
+                diretorioAtual !== initialValues.diretorio) {
                 setIsDirty(true);
             } else {
                 setIsDirty(false);
             }
         }
-    }, [titulo, descricao, conteudo, imagemUrl, initialValues]);
+    }, [titulo, descricao, conteudo, imagemUrl, diretorioAtual, initialValues]);
 
     useEffect(() => {
         if (id) {
@@ -193,6 +198,43 @@ function Create() {
             .catch(error => console.error('Erro ao excluir etiqueta:', error));
     };
 
+    const hexToRgb = (hex) => {
+        if (!hex) return '255, 255, 255';
+        hex = hex.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(char => char + char).join('');
+        }
+        const r = parseInt(hex.substring(0, 2), 16) || 0;
+        const g = parseInt(hex.substring(2, 4), 16) || 0;
+        const b = parseInt(hex.substring(4, 6), 16) || 0;
+        return `${r}, ${g}, ${b}`;
+    };
+
+    const handleToggleTag = (tag) => {
+        const isActive = activeNoteTags.some(t => t.id === tag.id);
+        if (id) {
+            if (isActive) {
+                api.post(`api/anotacao/${id}/desvincular-etiqueta/`, { etiqueta_id: tag.id })
+                    .then(() => {
+                        setActiveNoteTags(prev => prev.filter(t => t.id !== tag.id));
+                    })
+                    .catch(err => console.error("Erro ao desvincular etiqueta:", err));
+            } else {
+                api.post(`api/anotacao/${id}/vincular-etiqueta/`, { etiqueta_id: tag.id })
+                    .then(() => {
+                        setActiveNoteTags(prev => [...prev, tag]);
+                    })
+                    .catch(err => console.error("Erro ao vincular etiqueta:", err));
+            }
+        } else {
+            if (isActive) {
+                setActiveNoteTags(prev => prev.filter(t => t.id !== tag.id));
+            } else {
+                setActiveNoteTags(prev => [...prev, tag]);
+            }
+        }
+    };
+
     const handleSave = () => {
         const userId = localStorage.getItem('user_id');
         if (!userId) return;
@@ -202,6 +244,7 @@ function Create() {
             descricao: descricao || '',
             conteudo: conteudo,
             imagem_url: imagemUrl,
+            diretorio: diretorioAtual || null,
         };
 
         if (id) {
@@ -209,17 +252,38 @@ function Create() {
                 .then(() => {
                     setSavedAt(new Date()); 
                     setIsDirty(false);
-                    setInitialValues({ titulo, descricao, conteudo, imagemUrl });
+                    setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
                     navigate('/home');
                 })
                 .catch(error => console.error("Erro ao atualizar:", error))
         } else {
             api.post(`api/notas/${userId}/`, notaData)
                 .then((response) => {
-                    setSavedAt(new Date()); 
-                    setIsDirty(false);     
-                    setInitialValues({ titulo, descricao, conteudo, imagemUrl });
-                    navigate('/home');
+                    const novaNotaId = response.data.id;
+                    if (activeNoteTags.length > 0) {
+                        const vinculacoes = activeNoteTags.map(tag =>
+                            api.post(`api/anotacao/${novaNotaId}/vincular-etiqueta/`, { etiqueta_id: tag.id })
+                        );
+                        Promise.all(vinculacoes)
+                            .then(() => {
+                                setSavedAt(new Date()); 
+                                setIsDirty(false);     
+                                setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
+                                navigate('/home');
+                            })
+                            .catch(err => {
+                                console.error("Erro ao vincular etiquetas da nova nota:", err);
+                                setSavedAt(new Date()); 
+                                setIsDirty(false);     
+                                setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
+                                navigate('/home');
+                            });
+                    } else {
+                        setSavedAt(new Date()); 
+                        setIsDirty(false);     
+                        setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
+                        navigate('/home');
+                    }
                 })
                 .catch(error => console.error("Erro ao criar: ", error));
         }
@@ -337,11 +401,23 @@ function Create() {
                     </div>
 
                     <div className="create-tags-container">
-                        {etiqueta.map(tag => (
-                            <div key={tag.id} className='create-tag-item' style={{ color: tag.cor }}>
-                                <FaTag size={16} color={tag.cor} />{tag.nome.toUpperCase()}
-                            </div>
-                        ))}
+                        {etiqueta.map(tag => {
+                            const isActive = activeNoteTags.some(t => t.id === tag.id);
+                            return (
+                                <div
+                                    key={tag.id}
+                                    className={`create-tag-item ${isActive ? 'active' : 'inactive'}`}
+                                    style={{
+                                        '--tag-color': tag.cor,
+                                        '--tag-color-rgb': hexToRgb(tag.cor)
+                                    }}
+                                    onClick={() => handleToggleTag(tag)}
+                                >
+                                    <FaTag size={14} color={isActive ? tag.cor : '#666666'} />
+                                    {tag.nome.toUpperCase()}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 

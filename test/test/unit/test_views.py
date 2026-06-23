@@ -154,6 +154,33 @@ class TestVincularEtiqueta:
         assert response.status_code == 200
         assert nota.etiquetas.count() == 1
 
+    def test_desvincular_etiqueta(self, usuario):
+
+        nota = Anotacoes.objects.create(
+            usuario=usuario,
+            conteudo="Teste"
+        )
+
+        etiqueta = Etiquetas.objects.create(
+            usuario=usuario,
+            nome="Importante"
+        )
+
+        nota.etiquetas.add(etiqueta)
+
+        response = self.client.post(
+            f"/api/anotacao/{nota.id}/desvincular-etiqueta/",
+            {
+                "etiqueta_id": etiqueta.id
+            },
+            format="json"
+        )
+
+        nota.refresh_from_db()
+
+        assert response.status_code == 200
+        assert nota.etiquetas.count() == 0
+
 
 # ====================================================
 

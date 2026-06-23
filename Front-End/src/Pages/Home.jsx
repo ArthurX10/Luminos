@@ -146,6 +146,7 @@ function Home() {
     setNewTitle('');
     setNewDescription('');
     setSelectedFolder('');
+    setEtiquetasSelecionadas([]);
     setActiveModal(null);
   }
 
@@ -218,12 +219,42 @@ function Home() {
       diretorio: selectedFolder || null,
     })
       .then(response => {
-        setNotes(prevNotes => [response.data, ...prevNotes]);
-        setNewTitle('');
-        setNewDescription('');
-        setSelectedFolder('');
-        setActiveModal(null);
-        Navigate(`/create/${response.data.id}`)
+        const novaNotaId = response.data.id;
+        if (etiquetasSelecionadas.length > 0) {
+          const vinculacoes = etiquetasSelecionadas.map(tagId =>
+            api.post(`api/anotacao/${novaNotaId}/vincular-etiqueta/`, { etiqueta_id: tagId })
+          );
+          Promise.all(vinculacoes)
+            .then(() => {
+              const etiquetasVinculadas = etiquetas.filter(tag => etiquetasSelecionadas.includes(tag.id));
+              const notaComEtiquetas = { ...response.data, etiquetas: etiquetasVinculadas };
+              setNotes(prevNotes => [notaComEtiquetas, ...prevNotes]);
+              setNewTitle('');
+              setNewDescription('');
+              setSelectedFolder('');
+              setEtiquetasSelecionadas([]);
+              setActiveModal(null);
+              Navigate(`/create/${novaNotaId}`);
+            })
+            .catch(err => {
+              console.error("Erro ao vincular etiquetas:", err);
+              setNotes(prevNotes => [response.data, ...prevNotes]);
+              setNewTitle('');
+              setNewDescription('');
+              setSelectedFolder('');
+              setEtiquetasSelecionadas([]);
+              setActiveModal(null);
+              Navigate(`/create/${novaNotaId}`);
+            });
+        } else {
+          setNotes(prevNotes => [response.data, ...prevNotes]);
+          setNewTitle('');
+          setNewDescription('');
+          setSelectedFolder('');
+          setEtiquetasSelecionadas([]);
+          setActiveModal(null);
+          Navigate(`/create/${novaNotaId}`);
+        }
       })
       .catch(error => console.log("Erro ao criar nota: ", error))
   }
@@ -1001,7 +1032,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* Lembretes do Calendário */}
               <div className='experience-option-item'>
                 <div className='experience-label-group'>
                   <FaRegCalendar size={24} color='#ffffff' />

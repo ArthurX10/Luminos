@@ -7,21 +7,22 @@ class UsuarioSerializer(serializers.ModelSerializer):
         # Adicionando os novos campos que o David criou no bd
         fields = ['id', 'nome', 'email', 'foto_url', 'data_criacao'] # adicionei o data de criação zé 
 
+class EtiquetaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Etiquetas
+        fields = ['id', 'usuario', 'nome', 'cor']
+
 class AnotacaoSerializer(serializers.ModelSerializer):
     conteudo = serializers.CharField(allow_blank=True, required=False)
+    etiquetas = EtiquetaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Anotacoes
         # Sprint 06 - Adicionada a descrição (resumo) separada do conteúdo principal
         fields = ['id', 'titulo', 'descricao', 'conteudo', 'data_criacao',
                   'cor_fundo', 'tipo_layout', 'importante', 
-                  'data_prazo', 'dias_antecedencia_alerta', 'diretorio', 'imagem_url', 'data_atualizacao']
+                  'data_prazo', 'dias_antecedencia_alerta', 'diretorio', 'imagem_url', 'data_atualizacao', 'etiquetas']
         read_only_fields = ['usuario']
-
-class EtiquetaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Etiquetas
-        fields = ['id', 'usuario', 'nome', 'cor']
 
 class ElementoVisualSerializer(serializers.ModelSerializer):
     class Meta:

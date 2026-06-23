@@ -3,7 +3,7 @@ from django.urls import path
 # ADICIONADO: As novas funções da Sprint 03 foram incluídas no import aqui em cima
 from core.views import (
     api_login, api_cadastro, api_anotacoes, api_detalhe_anotacao, api_perfil_usuario,
-    api_gerenciar_etiquetas, api_detalhe_etiqueta, api_vincular_etiqueta,
+    api_gerenciar_etiquetas, api_detalhe_etiqueta, api_vincular_etiqueta, api_desvincular_etiqueta,
     api_salvar_elemento_visual, api_salvar_conexao,
     api_alternar_importante, api_listar_notificacoes, api_marcar_notificacao_lida,
     login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view,
@@ -31,6 +31,8 @@ urlpatterns = [
     # Vinculo N:M entre Nota e Etiqueta
     path('api/anotacao/<int:nota_id>/vincular-etiqueta/', api_vincular_etiqueta),
     path('api/anotacao/<int:nota_id>/vincular-etiqueta', api_vincular_etiqueta),
+    path('api/anotacao/<int:nota_id>/desvincular-etiqueta/', api_desvincular_etiqueta),
+    path('api/anotacao/<int:nota_id>/desvincular-etiqueta', api_desvincular_etiqueta),
 
     # Criar formas geométricas e conectores
     path('api/anotacao/<int:nota_id>/elemento/', api_salvar_elemento_visual),

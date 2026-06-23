@@ -191,6 +191,17 @@ def api_vincular_etiqueta(request, nota_id):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+def api_desvincular_etiqueta(request, nota_id):
+    etiqueta_id = request.data.get('etiqueta_id')
+    try:
+        nota = Anotacoes.objects.get(pk=nota_id)
+        etiqueta = Etiquetas.objects.get(pk=etiqueta_id)
+        nota.etiquetas.remove(etiqueta)
+        return Response({"message": "Etiqueta desvinculada!"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 # --- ENDPOINTS DO MAPA MENTAL / ESTRUTURAS ---
 
 @api_view(['POST'])

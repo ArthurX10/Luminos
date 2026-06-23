@@ -312,11 +312,44 @@
 
 .create-tag-item{
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   letter-spacing: 1px;
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  width: fit-content;
+  user-select: none;
+}
+
+.create-tag-item.active {
+  background-color: rgba(var(--tag-color-rgb), 0.15);
+  border-color: var(--tag-color);
+  color: var(--tag-color);
+  box-shadow: 0 2px 8px rgba(var(--tag-color-rgb), 0.1);
+}
+
+.create-tag-item.inactive {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #666666;
+  opacity: 0.6;
+}
+
+.create-tag-item.inactive:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #999999;
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.create-tag-item.active:hover {
+  background-color: rgba(var(--tag-color-rgb), 0.25);
+  transform: translateY(-1px);
 }
 
 .create-hierarchy-title{
