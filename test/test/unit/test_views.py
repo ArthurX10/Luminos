@@ -465,6 +465,48 @@ class TestMapaMentalApi:
         assert response.status_code == 201
         assert ConexoesLinhas.objects.filter(anotacao=nota, elemento_origem=el1).exists()
 
+    def test_editar_elemento_visual(self, usuario):
+        nota = Anotacoes.objects.create(usuario=usuario, conteudo="Mapa")
+        el = ElementosVisuais.objects.create(anotacao=nota, tipo_forma="RETANGULO", texto_interno="Velho")
+        response = self.client.put(
+            f"/api/elemento/{el.id}/",
+            {"texto_interno": "Novo"},
+            format="json"
+        )
+        assert response.status_code == 200
+        el.refresh_from_db()
+        assert el.texto_interno == "Novo"
+
+    def test_deletar_elemento_visual(self, usuario):
+        nota = Anotacoes.objects.create(usuario=usuario, conteudo="Mapa")
+        el = ElementosVisuais.objects.create(anotacao=nota, tipo_forma="RETANGULO")
+        response = self.client.delete(f"/api/elemento/{el.id}/")
+        assert response.status_code == 204
+        assert not ElementosVisuais.objects.filter(id=el.id).exists()
+
+    def test_editar_conexao(self, usuario):
+        nota = Anotacoes.objects.create(usuario=usuario, conteudo="Mapa")
+        el1 = ElementosVisuais.objects.create(anotacao=nota, tipo_forma="RETANGULO")
+        el2 = ElementosVisuais.objects.create(anotacao=nota, tipo_forma="CIRCULO")
+        conexao = ConexoesLinhas.objects.create(anotacao=nota, elemento_origem=el1, elemento_destino=el2, espessura=2)
+        response = self.client.put(
+            f"/api/conexao/{conexao.id}/",
+            {"espessura": 5},
+            format="json"
+        )
+        assert response.status_code == 200
+        conexao.refresh_from_db()
+        assert conexao.espessura == 5
+
+    def test_deletar_conexao(self, usuario):
+        nota = Anotacoes.objects.create(usuario=usuario, conteudo="Mapa")
+        el1 = ElementosVisuais.objects.create(anotacao=nota, tipo_forma="RETANGULO")
+        el2 = ElementosVisuais.objects.create(anotacao=nota, tipo_forma="CIRCULO")
+        conexao = ConexoesLinhas.objects.create(anotacao=nota, elemento_origem=el1, elemento_destino=el2)
+        response = self.client.delete(f"/api/conexao/{conexao.id}/")
+        assert response.status_code == 204
+        assert not ConexoesLinhas.objects.filter(id=conexao.id).exists()
+
 
 @pytest.mark.django_db
 class TestNotificacoesAcoesApi:

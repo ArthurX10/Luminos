@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import './Create.css';
@@ -9,7 +9,9 @@ import { FaImage } from "react-icons/fa6";
 import { PiSquaresFourLight } from "react-icons/pi";
 import { GoFileDirectory } from "react-icons/go";
 import Logo from '../components/Logo';
-import { FaTag } from "react-icons/fa6";
+import { FaTag, FaRegSquare, FaRegCircle, FaRegTrashCan } from "react-icons/fa6";
+import { TbTriangle } from "react-icons/tb";
+import { FiLink } from "react-icons/fi";
 
 
 function Create() {
@@ -42,6 +44,28 @@ function Create() {
     const [imagemUrl, setImagemUrl] = useState('');
     const [tempImagemUrl, setTempImagemUrl] = useState('');
     const [activeNoteTags, setActiveNoteTags] = useState([]);
+
+    const [tipoLayout, setTipoLayout] = useState('TEXTO');
+    const [canvasElements, setCanvasElements] = useState([]);
+    const [canvasConnections, setCanvasConnections] = useState([]);
+    const [deletedElements, setDeletedElements] = useState([]);
+    const [deletedConnections, setDeletedConnections] = useState([]);
+    const [selectedElementId, setSelectedElementId] = useState(null);
+    const [selectedConnectionId, setSelectedConnectionId] = useState(null);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [connectStartElementId, setConnectStartElementId] = useState(null);
+
+    const [selectedFillColor, setSelectedFillColor] = useState('#FFFFFF');
+    const [selectedBorderColor, setSelectedBorderColor] = useState('#000000');
+    const [selectedLineColor, setSelectedLineColor] = useState('#000000');
+
+    const [draggingElementId, setDraggingElementId] = useState(null);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    const [editingTextElementId, setEditingTextElementId] = useState(null);
+    const [editingTextValue, setEditingTextValue] = useState('');
+
+    const canvasRef = useRef(null);
+
     const DIRETORIOS = [
         { key: 'pessoal', label: 'PESSOAL' },
         { key: 'trabalho', label: 'TRABALHO/FACULDADE' },
@@ -85,12 +109,22 @@ function Create() {
                     setImagemUrl(data.imagem_url || '');
                     setDiretorioAtual(data.diretorio || null);
                     setActiveNoteTags(data.etiquetas || []);
+                    setTipoLayout(data.tipo_layout || 'TEXTO');
+                    setCanvasElements(data.elementos || []);
+                    setCanvasConnections(data.conexoes || []);
+                    setDeletedElements([]);
+                    setDeletedConnections([]);
+                    setSelectedElementId(null);
+                    setSelectedConnectionId(null);
+                    setIsConnecting(false);
+                    setConnectStartElementId(null);
                     setInitialValues({
                         titulo: data.titulo || '',
                         descricao: data.descricao || '',
                         conteudo: data.conteudo || '',
                         imagemUrl: data.imagem_url || '',
-                        diretorio: data.diretorio || null
+                        diretorio: data.diretorio || null,
+                        tipoLayout: data.tipo_layout || 'TEXTO'
                     });
                 })
                 .catch(error => {
@@ -103,7 +137,16 @@ function Create() {
             setImagemUrl('');
             setDiretorioAtual(null);
             setActiveNoteTags([]);
-            setInitialValues({ titulo: '', descricao: '', conteudo: '', imagemUrl: '', diretorio: null });
+            setTipoLayout('TEXTO');
+            setCanvasElements([]);
+            setCanvasConnections([]);
+            setDeletedElements([]);
+            setDeletedConnections([]);
+            setSelectedElementId(null);
+            setSelectedConnectionId(null);
+            setIsConnecting(false);
+            setConnectStartElementId(null);
+            setInitialValues({ titulo: '', descricao: '', conteudo: '', imagemUrl: '', diretorio: null, tipoLayout: 'TEXTO' });
         }
 
     }, [id]);
@@ -114,13 +157,14 @@ function Create() {
                 descricao !== initialValues.descricao || 
                 conteudo !== initialValues.conteudo ||
                 imagemUrl !== initialValues.imagemUrl ||
-                diretorioAtual !== initialValues.diretorio) {
+                diretorioAtual !== initialValues.diretorio ||
+                tipoLayout !== initialValues.tipoLayout) {
                 setIsDirty(true);
             } else {
                 setIsDirty(false);
             }
         }
-    }, [titulo, descricao, conteudo, imagemUrl, diretorioAtual, initialValues]);
+    }, [titulo, descricao, conteudo, imagemUrl, diretorioAtual, tipoLayout, initialValues]);
 
     useEffect(() => {
         if (id) {
@@ -235,6 +279,161 @@ function Create() {
         }
     };
 
+    const handleAddShape = (type) => {
+        setIsDirty(true);
+        const tempId = `temp_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        const newShape = {
+            id: tempId,
+            tipo_forma: type,
+            texto_interno: type === 'QUADRADO' ? 'Quadrado' : type === 'CIRCULO' ? 'Círculo' : 'Triângulo',
+            posicao_x: 200 + Math.floor(Math.random() * 80),
+            posicao_y: 150 + Math.floor(Math.random() * 80),
+            largura: 120,
+            altura: 80,
+            cor_preenchimento: selectedFillColor,
+            cor_borda: selectedBorderColor
+        };
+        setCanvasElements(prev => [...prev, newShape]);
+        setSelectedElementId(tempId);
+        setSelectedConnectionId(null);
+    };
+
+    const handleDeleteSelected = () => {
+        if (selectedElementId) {
+            setIsDirty(true);
+            const elId = selectedElementId;
+            if (!String(elId).startsWith('temp_')) {
+                setDeletedElements(prev => [...prev, elId]);
+            }
+            setCanvasElements(prev => prev.filter(el => el.id !== elId));
+
+            const associatedConnections = canvasConnections.filter(c => c.elemento_origem === elId || c.elemento_destino === elId);
+            associatedConnections.forEach(c => {
+                if (!String(c.id).startsWith('temp_')) {
+                    setDeletedConnections(prev => [...prev, c.id]);
+                }
+            });
+            setCanvasConnections(prev => prev.filter(c => c.elemento_origem !== elId && c.elemento_destino !== elId));
+            setSelectedElementId(null);
+        } else if (selectedConnectionId) {
+            setIsDirty(true);
+            const cId = selectedConnectionId;
+            if (!String(cId).startsWith('temp_')) {
+                setDeletedConnections(prev => [...prev, cId]);
+            }
+            setCanvasConnections(prev => prev.filter(c => c.id !== cId));
+            setSelectedConnectionId(null);
+        }
+    };
+
+    const handleShapeClick = (e, shapeId) => {
+        e.stopPropagation();
+        if (isConnecting) {
+            if (!connectStartElementId) {
+                setConnectStartElementId(shapeId);
+            } else if (connectStartElementId !== shapeId) {
+                setIsDirty(true);
+                const tempCId = `temp_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                const newConnection = {
+                    id: tempCId,
+                    elemento_origem: connectStartElementId,
+                    elemento_destino: shapeId,
+                    tipo_linha: 'RETA',
+                    cor_linha: selectedLineColor,
+                    espessura: 2,
+                    texto_rotulo: ''
+                };
+                setCanvasConnections(prev => [...prev, newConnection]);
+                setIsConnecting(false);
+                setConnectStartElementId(null);
+                setSelectedConnectionId(tempCId);
+                setSelectedElementId(null);
+            }
+        } else {
+            setSelectedElementId(shapeId);
+            setSelectedConnectionId(null);
+            const element = canvasElements.find(el => el.id === shapeId);
+            if (element) {
+                setSelectedFillColor(element.cor_preenchimento || '#FFFFFF');
+                setSelectedBorderColor(element.cor_borda || '#000000');
+            }
+        }
+    };
+
+    const handleUpdateElementColors = (fill, border) => {
+        if (!selectedElementId) return;
+        setIsDirty(true);
+        setCanvasElements(prev => prev.map(el => {
+            if (el.id === selectedElementId) {
+                return {
+                    ...el,
+                    cor_preenchimento: fill !== null ? fill : el.cor_preenchimento,
+                    cor_borda: border !== null ? border : el.cor_borda
+                };
+            }
+            return el;
+        }));
+    };
+
+    const handleElementMouseDown = (e, shapeId) => {
+        if (isConnecting || editingTextElementId === shapeId) return;
+        e.stopPropagation();
+        const element = canvasElements.find(el => el.id === shapeId);
+        if (!element) return;
+
+        setSelectedElementId(shapeId);
+        setSelectedConnectionId(null);
+        setDraggingElementId(shapeId);
+        setDragOffset({
+            x: e.clientX - parseFloat(element.posicao_x),
+            y: e.clientY - parseFloat(element.posicao_y)
+        });
+    };
+
+    const handleCanvasMouseMove = (e) => {
+        if (draggingElementId) {
+            setIsDirty(true);
+            const rect = canvasRef.current.getBoundingClientRect();
+            let newX = e.clientX - dragOffset.x;
+            let newY = e.clientY - dragOffset.y;
+
+            newX = Math.max(10, Math.min(newX, rect.width - 130));
+            newY = Math.max(10, Math.min(newY, rect.height - 90));
+
+            setCanvasElements(prev => prev.map(el => {
+                if (el.id === draggingElementId) {
+                    return {
+                        ...el,
+                        posicao_x: newX,
+                        posicao_y: newY
+                    };
+                }
+                return el;
+            }));
+        }
+    };
+
+    const handleCanvasMouseUp = () => {
+        setDraggingElementId(null);
+    };
+
+    const handleElementDoubleClick = (e, shapeId, currentText) => {
+        e.stopPropagation();
+        setEditingTextElementId(shapeId);
+        setEditingTextValue(currentText);
+    };
+
+    const handleTextEditBlur = (shapeId) => {
+        setIsDirty(true);
+        setCanvasElements(prev => prev.map(el => {
+            if (el.id === shapeId) {
+                return { ...el, texto_interno: editingTextValue };
+            }
+            return el;
+        }));
+        setEditingTextElementId(null);
+    };
+
     const handleSave = () => {
         const userId = localStorage.getItem('user_id');
         if (!userId) return;
@@ -245,47 +444,123 @@ function Create() {
             conteudo: conteudo,
             imagem_url: imagemUrl,
             diretorio: diretorioAtual || null,
+            tipo_layout: tipoLayout,
+        };
+
+        const processVisuals = (notaId) => {
+            const elementDeletes = deletedElements.map(elId => api.delete(`api/elemento/${elId}/`));
+            const connectionDeletes = deletedConnections.map(cId => api.delete(`api/conexao/${cId}/`));
+
+            return Promise.all([...elementDeletes, ...connectionDeletes])
+                .then(() => {
+                    const existingElements = canvasElements.filter(el => !String(el.id).startsWith('temp_'));
+                    const newElements = canvasElements.filter(el => String(el.id).startsWith('temp_'));
+
+                    const elementUpdates = existingElements.map(el =>
+                        api.put(`api/elemento/${el.id}/`, {
+                            tipo_forma: el.tipo_forma,
+                            texto_interno: el.texto_interno,
+                            posicao_x: el.posicao_x,
+                            posicao_y: el.posicao_y,
+                            largura: el.largura,
+                            altura: el.altura,
+                            cor_preenchimento: el.cor_preenchimento,
+                            cor_borda: el.cor_borda
+                        })
+                    );
+
+                    const elementCreates = newElements.map(el =>
+                        api.post(`api/anotacao/${notaId}/elemento/`, {
+                            tipo_forma: el.tipo_forma,
+                            texto_interno: el.texto_interno,
+                            posicao_x: el.posicao_x,
+                            posicao_y: el.posicao_y,
+                            largura: el.largura,
+                            altura: el.altura,
+                            cor_preenchimento: el.cor_preenchimento,
+                            cor_borda: el.cor_borda
+                        }).then(res => ({ tempId: el.id, realId: res.data.id }))
+                    );
+
+                    return Promise.all([
+                        Promise.all(elementUpdates),
+                        Promise.all(elementCreates)
+                    ]);
+                })
+                .then(([updatesRes, createdMappings]) => {
+                    const idMap = {};
+                    createdMappings.forEach(mapping => {
+                        idMap[mapping.tempId] = mapping.realId;
+                    });
+
+                    const getRealId = (id) => {
+                        if (String(id).startsWith('temp_')) {
+                            return idMap[id];
+                        }
+                        return id;
+                    };
+
+                    const existingConnections = canvasConnections.filter(c => !String(c.id).startsWith('temp_'));
+                    const newConnections = canvasConnections.filter(c => String(c.id).startsWith('temp_'));
+
+                    const connectionUpdates = existingConnections.map(c =>
+                        api.put(`api/conexao/${c.id}/`, {
+                            elemento_origem: getRealId(c.elemento_origem),
+                            elemento_destino: getRealId(c.elemento_destino),
+                            tipo_linha: c.tipo_linha,
+                            cor_linha: c.cor_linha,
+                            espessura: c.espessura,
+                            texto_rotulo: c.texto_rotulo
+                        })
+                    );
+
+                    const connectionCreates = newConnections.map(c =>
+                        api.post(`api/anotacao/${notaId}/conexao/`, {
+                            elemento_origem: getRealId(c.elemento_origem),
+                            elemento_destino: getRealId(c.elemento_destino),
+                            tipo_linha: c.tipo_linha,
+                            cor_linha: c.cor_linha,
+                            espessura: c.espessura,
+                            texto_rotulo: c.texto_rotulo
+                        })
+                    );
+
+                    return Promise.all([...connectionUpdates, ...connectionCreates]);
+                });
         };
 
         if (id) {
             api.put(`api/notas/detalhe/${id}/`, notaData)
+                .then(() => processVisuals(id))
                 .then(() => {
                     setSavedAt(new Date()); 
                     setIsDirty(false);
-                    setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
+                    setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual, tipoLayout: tipoLayout });
                     navigate('/home');
                 })
-                .catch(error => console.error("Erro ao atualizar:", error))
+                .catch(error => console.error("Erro ao salvar nota e elementos:", error));
         } else {
             api.post(`api/notas/${userId}/`, notaData)
                 .then((response) => {
                     const novaNotaId = response.data.id;
+                    let tagLinkPromise = Promise.resolve();
                     if (activeNoteTags.length > 0) {
                         const vinculacoes = activeNoteTags.map(tag =>
                             api.post(`api/anotacao/${novaNotaId}/vincular-etiqueta/`, { etiqueta_id: tag.id })
                         );
-                        Promise.all(vinculacoes)
-                            .then(() => {
-                                setSavedAt(new Date()); 
-                                setIsDirty(false);     
-                                setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
-                                navigate('/home');
-                            })
-                            .catch(err => {
-                                console.error("Erro ao vincular etiquetas da nova nota:", err);
-                                setSavedAt(new Date()); 
-                                setIsDirty(false);     
-                                setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
-                                navigate('/home');
-                            });
-                    } else {
-                        setSavedAt(new Date()); 
-                        setIsDirty(false);     
-                        setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual });
-                        navigate('/home');
+                        tagLinkPromise = Promise.all(vinculacoes);
                     }
+
+                    return tagLinkPromise
+                        .then(() => processVisuals(novaNotaId))
+                        .then(() => {
+                            setSavedAt(new Date()); 
+                            setIsDirty(false);     
+                            setInitialValues({ titulo, descricao, conteudo, imagemUrl, diretorio: diretorioAtual, tipoLayout: tipoLayout });
+                            navigate('/home');
+                        });
                 })
-                .catch(error => console.error("Erro ao criar: ", error));
+                .catch(error => console.error("Erro ao criar nota e elementos: ", error));
         }
     }
 
@@ -464,9 +739,9 @@ function Create() {
                             IMAGEM
                         </div>
 
-                        <div className='create-header-btn'>
+                        <div className={`create-header-btn ${tipoLayout === 'MAPA' ? 'active' : ''}`} onClick={() => setTipoLayout(tipoLayout === 'TEXTO' ? 'MAPA' : 'TEXTO')}>
                             <PiSquaresFourLight size={24} />
-                            ESTILO
+                            {tipoLayout === 'TEXTO' ? 'MAPA MENTAL' : 'TEXTO'}
                         </div>
                     </div>
                 </div>
@@ -579,30 +854,224 @@ function Create() {
                             </button>
                         )}
                     </div>
-                    <textarea
-                        className="editor-content-textarea"
-                        value={conteudo}
-                        onChange={(e) => setConteudo(e.target.value)}
-                        placeholder="CAMPO CRIATIVO"
-                        onKeyDown={(e) => {
-                            if (e.key === 'Tab' || e.key === 'TAB'){
-                                e.preventDefault();
-                                const start = e.target.selectionStart;
-                                const end = e.target.selectionEnd;
-                                const novoConteudo = conteudo.substring(0, start) + '\t' + conteudo.substring(end);
-                                setConteudo(novoConteudo);
-                                requestAnimationFrame(() => {
-                                    e.target.selectionStart = start + 1;
-                                    e.target.selectionEnd = start + 1;
-                                });
-                            }
-                        }}
-                        style={{
-                            fontFamily: getActiveFont(),
-                            fontSize: `${fontSize}px`,
-                            lineHeight: lineHeight,
-                        }}
-                    />
+                    {tipoLayout === 'TEXTO' ? (
+                        <textarea
+                            className="editor-content-textarea"
+                            value={conteudo}
+                            onChange={(e) => setConteudo(e.target.value)}
+                            placeholder="CAMPO CRIATIVO"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Tab' || e.key === 'TAB'){
+                                    e.preventDefault();
+                                    const start = e.target.selectionStart;
+                                    const end = e.target.selectionEnd;
+                                    const novoConteudo = conteudo.substring(0, start) + '\t' + conteudo.substring(end);
+                                    setConteudo(novoConteudo);
+                                    requestAnimationFrame(() => {
+                                        e.target.selectionStart = start + 1;
+                                        e.target.selectionEnd = start + 1;
+                                    });
+                                }
+                            }}
+                            style={{
+                                fontFamily: getActiveFont(),
+                                fontSize: `${fontSize}px`,
+                                lineHeight: lineHeight,
+                            }}
+                        />
+                    ) : (
+                        <>
+                            <div className="canvas-toolbar">
+                                <div className="toolbar-section">
+                                    <span className="toolbar-label">FORMAS:</span>
+                                    <button type="button" className="toolbar-btn" onClick={() => handleAddShape('QUADRADO')}>
+                                        <FaRegSquare size={16} /> QUADRADO
+                                    </button>
+                                    <button type="button" className="toolbar-btn" onClick={() => handleAddShape('CIRCULO')}>
+                                        <FaRegCircle size={16} /> CÍRCULO
+                                    </button>
+                                    <button type="button" className="toolbar-btn" onClick={() => handleAddShape('TRIANGULO')}>
+                                        <TbTriangle size={18} /> TRIÂNGULO
+                                    </button>
+                                </div>
+                                <div className="toolbar-section">
+                                    <button 
+                                        type="button" 
+                                        className={`toolbar-btn ${isConnecting ? 'active' : ''}`} 
+                                        onClick={() => {
+                                            setIsConnecting(!isConnecting);
+                                            setConnectStartElementId(null);
+                                        }}
+                                    >
+                                        <FiLink size={16} /> {isConnecting ? 'CONECTANDO...' : 'CONECTAR'}
+                                    </button>
+                                    {(selectedElementId || selectedConnectionId) && (
+                                        <button type="button" className="toolbar-btn delete" onClick={handleDeleteSelected}>
+                                            <FaRegTrashCan size={16} /> EXCLUIR
+                                        </button>
+                                    )}
+                                </div>
+                                {selectedElementId && (
+                                    <div className="toolbar-section colors">
+                                        <span className="toolbar-label">CORES:</span>
+                                        <div className="color-picker-group">
+                                            <label>Fundo:</label>
+                                            <input 
+                                                type="color" 
+                                                value={selectedFillColor} 
+                                                onChange={(e) => {
+                                                    setSelectedFillColor(e.target.value);
+                                                    handleUpdateElementColors(e.target.value, null);
+                                                }} 
+                                            />
+                                        </div>
+                                        <div className="color-picker-group">
+                                            <label>Borda:</label>
+                                            <input 
+                                                type="color" 
+                                                value={selectedBorderColor} 
+                                                onChange={(e) => {
+                                                    setSelectedBorderColor(e.target.value);
+                                                    handleUpdateElementColors(null, e.target.value);
+                                                }} 
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div 
+                                ref={canvasRef} 
+                                className="canvas-container" 
+                                onMouseMove={handleCanvasMouseMove}
+                                onMouseUp={handleCanvasMouseUp}
+                                onMouseLeave={handleCanvasMouseUp}
+                                onClick={() => {
+                                    setSelectedElementId(null);
+                                    setSelectedConnectionId(null);
+                                    setIsConnecting(false);
+                                    setConnectStartElementId(null);
+                                }}
+                            >
+                                {/* SVG Connection Lines */}
+                                <svg className="canvas-svg-overlay">
+                                    {canvasConnections.map(c => {
+                                        const fromEl = canvasElements.find(el => el.id === c.elemento_origem);
+                                        const toEl = canvasElements.find(el => el.id === c.elemento_destino);
+                                        if (!fromEl || !toEl) return null;
+
+                                        const x1 = parseFloat(fromEl.posicao_x) + parseFloat(fromEl.largura) / 2;
+                                        const y1 = parseFloat(fromEl.posicao_y) + parseFloat(fromEl.altura) / 2;
+                                        const x2 = parseFloat(toEl.posicao_x) + parseFloat(toEl.largura) / 2;
+                                        const y2 = parseFloat(toEl.posicao_y) + parseFloat(toEl.altura) / 2;
+
+                                        const isLineSelected = selectedConnectionId === c.id;
+
+                                        return (
+                                            <g key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedConnectionId(c.id); setSelectedElementId(null); }}>
+                                                <line 
+                                                    x1={x1} y1={y1} x2={x2} y2={y2} 
+                                                    stroke="transparent" 
+                                                    strokeWidth={15} 
+                                                    style={{ cursor: 'pointer' }}
+                                                />
+                                                <line 
+                                                    x1={x1} y1={y1} x2={x2} y2={y2} 
+                                                    stroke={isLineSelected ? '#007AFF' : (c.cor_linha || '#666666')} 
+                                                    strokeWidth={isLineSelected ? 4 : (c.espessura || 2)} 
+                                                    strokeDasharray={isLineSelected ? "5,5" : ""}
+                                                    style={{ cursor: 'pointer', transition: 'stroke 0.2s' }}
+                                                />
+                                                <circle cx={x1} cy={y1} r={4} fill={c.cor_linha || '#666666'} />
+                                                <circle cx={x2} cy={y2} r={4} fill={c.cor_linha || '#666666'} />
+                                            </g>
+                                        );
+                                    })}
+                                </svg>
+
+                                {/* Geometric Shapes */}
+                                {canvasElements.map(el => {
+                                    const isElSelected = selectedElementId === el.id;
+                                    const isElConnectingStart = connectStartElementId === el.id;
+                                    
+                                    let shapeSvg = null;
+                                    if (el.tipo_forma === 'TRIANGULO') {
+                                        shapeSvg = (
+                                            <svg className="shape-svg-bg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                                <polygon 
+                                                    points="50,5 5,95 95,95" 
+                                                    fill={el.cor_preenchimento || '#FFFFFF'} 
+                                                    stroke={isElSelected ? '#007AFF' : (el.cor_borda || '#000000')} 
+                                                    strokeWidth={isElSelected ? 3 : 2}
+                                                />
+                                            </svg>
+                                        );
+                                    } else if (el.tipo_forma === 'CIRCULO') {
+                                        shapeSvg = (
+                                            <svg className="shape-svg-bg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                                <circle 
+                                                    cx="50" cy="50" r="45" 
+                                                    fill={el.cor_preenchimento || '#FFFFFF'} 
+                                                    stroke={isElSelected ? '#007AFF' : (el.cor_borda || '#000000')} 
+                                                    strokeWidth={isElSelected ? 3 : 2}
+                                                />
+                                            </svg>
+                                        );
+                                    } else {
+                                        shapeSvg = (
+                                            <svg className="shape-svg-bg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                                <rect 
+                                                    x="5" y="5" width="90" height="90" 
+                                                    fill={el.cor_preenchimento || '#FFFFFF'} 
+                                                    stroke={isElSelected ? '#007AFF' : (el.cor_borda || '#000000')} 
+                                                    strokeWidth={isElSelected ? 3 : 2}
+                                                    rx="8" ry="8"
+                                                />
+                                            </svg>
+                                        );
+                                    }
+
+                                    return (
+                                        <div
+                                            key={el.id}
+                                            className={`canvas-shape-item ${isElSelected ? 'selected' : ''} ${isElConnectingStart ? 'connecting-start' : ''}`}
+                                            style={{
+                                                left: `${el.posicao_x}px`,
+                                                top: `${el.posicao_y}px`,
+                                                width: `${el.largura}px`,
+                                                height: `${el.altura}px`,
+                                            }}
+                                            onMouseDown={(e) => handleElementMouseDown(e, el.id)}
+                                            onClick={(e) => handleShapeClick(e, el.id)}
+                                            onDoubleClick={(e) => handleElementDoubleClick(e, el.id, el.texto_interno)}
+                                        >
+                                            {shapeSvg}
+                                            
+                                            <div className="shape-content-wrapper">
+                                                {editingTextElementId === el.id ? (
+                                                    <input
+                                                        type="text"
+                                                        className="shape-text-input"
+                                                        value={editingTextValue}
+                                                        onChange={(e) => setEditingTextValue(e.target.value)}
+                                                        onBlur={() => handleTextEditBlur(el.id)}
+                                                        onKeyDown={(e) => { if (e.key === 'Enter') handleTextEditBlur(el.id); }}
+                                                        autoFocus
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        onMouseDown={(e) => e.stopPropagation()}
+                                                    />
+                                                ) : (
+                                                    <span className="shape-text-label">
+                                                        {el.texto_interno || ''}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 

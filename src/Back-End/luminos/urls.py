@@ -4,7 +4,7 @@ from django.urls import path
 from core.views import (
     api_login, api_cadastro, api_anotacoes, api_detalhe_anotacao, api_perfil_usuario,
     api_gerenciar_etiquetas, api_detalhe_etiqueta, api_vincular_etiqueta, api_desvincular_etiqueta,
-    api_salvar_elemento_visual, api_salvar_conexao,
+    api_salvar_elemento_visual, api_salvar_conexao, api_detalhe_elemento, api_detalhe_conexao,
     api_alternar_importante, api_listar_notificacoes, api_marcar_notificacao_lida,
     login_view, cadastro_view, anotacoes_view, excluir_anotacao, editar_anotacao, logout_view,
     api_detalhe_evento, api_gerenciar_eventos,
@@ -39,6 +39,12 @@ urlpatterns = [
     path('api/anotacao/<int:nota_id>/elemento', api_salvar_elemento_visual),
     path('api/anotacao/<int:nota_id>/conexao/', api_salvar_conexao),
     path('api/anotacao/<int:nota_id>/conexao', api_salvar_conexao),
+    
+    # Detalhes de formas geométricas e conectores (PUT/DELETE)
+    path('api/elemento/<int:pk>/', api_detalhe_elemento),
+    path('api/elemento/<int:pk>', api_detalhe_elemento),
+    path('api/conexao/<int:pk>/', api_detalhe_conexao),
+    path('api/conexao/<int:pk>', api_detalhe_conexao),
     path('api/anotacao/<int:nota_id>/destacar/', api_alternar_importante),
     path('api/anotacao/<int:nota_id>/destacar', api_alternar_importante),
     # Sprint 05 (notificações)

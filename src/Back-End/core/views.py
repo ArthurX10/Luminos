@@ -224,6 +224,42 @@ def api_salvar_conexao(request, nota_id):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['PUT', 'DELETE'])
+def api_detalhe_elemento(request, pk):
+    try:
+        elemento = ElementosVisuais.objects.get(pk=pk)
+    except ElementosVisuais.DoesNotExist:
+        return Response({"error": "Elemento visual não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == 'PUT':
+        serializer = ElementoVisualSerializer(elemento, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    if request.method == 'DELETE':
+        elemento.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['PUT', 'DELETE'])
+def api_detalhe_conexao(request, pk):
+    try:
+        conexao = ConexoesLinhas.objects.get(pk=pk)
+    except ConexoesLinhas.DoesNotExist:
+        return Response({"error": "Conexão de linha não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == 'PUT':
+        serializer = ConexaoLinhaSerializer(conexao, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    if request.method == 'DELETE':
+        conexao.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 @api_view(['PATCH', 'GET'])
 def api_alternar_importante(request, nota_id):
     try:
