@@ -40,6 +40,8 @@ function Home() {
   const [managerFilter, setManagerFilter] = useState('ANOTAÇÕES')
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModal, setActiveModal] = useState(null);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [selectedFilterTag, setSelectedFilterTag] = useState(null);
   const [userEmail, setUserEmail] = useState('');
   const [userCreatedDate, setUserCreatedDate] = useState('');
   const [remeberDiary, setRemeberDiary] = useState(false);
@@ -59,15 +61,23 @@ function Home() {
   const CORES_ETIQUETA = ['#007AFF', '#34C759', '#FF3B30', '#AF52DE', '#FF9500', '#FF2D55', '#5AC8FA'];
 
 
-  const filteredNotes = notes.filter(note => 
-    (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || 
-    (note.descricao && note.descricao.toLowerCase().includes(searchQuery.toLowerCase())) || 
-    (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredNotes = notes.filter(note => {
+    const matchesQuery = searchQuery ? (
+      (note.titulo && note.titulo.toLowerCase().includes(searchQuery.toLowerCase())) || 
+      (note.descricao && note.descricao.toLowerCase().includes(searchQuery.toLowerCase())) || 
+      (note.conteudo && note.conteudo.toLowerCase().includes(searchQuery.toLowerCase()))
+    ) : true;
+
+    const matchesTag = selectedFilterTag ? (
+      note.etiquetas && note.etiquetas.some(tag => tag.id === selectedFilterTag)
+    ) : true;
+
+    return matchesQuery && matchesTag;
+  });
 
   const futureEvents = events.filter(event => new Date(event.data_inicio) >= new Date());
 
-  const formatRelativeTime = (dataString) => {
+  const formatRelativeTime = (dataString)  => {
     if (!dataString) return 'Sem Registro';
 
 
@@ -78,21 +88,13 @@ function Home() {
     const diffMs = now - date;
 
     if (diffMs < 0) return "Agora mesmo";
-
     const diffMins = Math.floor(diffMs / 60000);
-
     if (diffMins < 1) return "Agora mesmo";
-
     if (diffMins < 60) return `Há ${diffMins} min`;
-
     const diffHours = Math.floor(diffMins / 60);
-
     if (diffHours < 24) return `Há ${diffHours} h`;
-
     const diffDays = Math.floor(diffHours / 24);
-
     if (diffDays === 1) return "Ontem";
-
     if (diffDays <= 30) return `Há ${diffDays} dias`;
     const diffMonths = Math.floor(diffDays / 30);
     if (diffMonths === 1) return "Há 1 mês";
@@ -325,6 +327,13 @@ function Home() {
     });
     return folders;
   };
+
+  useEffect(() => {
+    if (activeModal !== 'SEARCH') {
+      setShowFilterPanel(false);
+      setSelectedFilterTag(null);
+    }
+  }, [activeModal]);
 
   useEffect(() => {
     const getGreeting = () => {
@@ -684,11 +693,56 @@ function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
               />
-              <IoFunnelOutline size={24} color='#ffffff' style={{ cursor: 'pointer' }} />
+              <IoFunnelOutline
+                size={24}
+                className={`search-filter-icon ${selectedFilterTag ? 'active' : ''}`}
+                style={{ cursor: 'pointer', color: selectedFilterTag ? '#007AFF' : '#ffffff', transition: 'color 0.2s ease, transform 0.2s ease' }}
+                onClick={() => setShowFilterPanel(!showFilterPanel)}
+              />
             </div>
 
+            {showFilterPanel && (
+              <div className="search-filter-panel fade-in">
+                <span className="filter-panel-title">FILTRAR POR ETIQUETA:</span>
+                <div className="filter-tags-list">
+                  {etiquetas.length === 0 ? (
+                    <span className="filter-empty-hint">Nenhuma etiqueta encontrada.</span>
+                  ) : (
+                    etiquetas.map(tag => (
+                      <div
+                        key={tag.id}
+                        className={`filter-tag-item ${selectedFilterTag === tag.id ? 'active' : ''}`}
+                        onClick={() => setSelectedFilterTag(selectedFilterTag === tag.id ? null : tag.id)}
+                        style={{ '--tag-cor': tag.cor }}
+                      >
+                        <FaTag size={12} color={selectedFilterTag === tag.id ? '#ffffff' : tag.cor} />
+                        <span>{tag.nome.toUpperCase()}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {selectedFilterTag && (
+                  <button
+                    type="button"
+                    className="btn-clear-filter"
+                    onClick={() => setSelectedFilterTag(null)}
+                  >
+                    Limpar Filtro
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="recent-search">
-              {searchQuery ? "RESULTADO" : "RECENTES"}
+              {searchQuery || selectedFilterTag ? (
+                selectedFilterTag ? (
+                  <>
+                    FILTRADO POR: <span style={{ color: etiquetas.find(t => t.id === selectedFilterTag)?.cor || '#fff' }}>
+                      {etiquetas.find(t => t.id === selectedFilterTag)?.nome.toUpperCase()}
+                    </span>
+                  </>
+                ) : "RESULTADO"
+              ) : "RECENTES"}
             </div>
 
             <div className="search-result-list">
