@@ -16,3 +16,42 @@ html, body, #root {
 body {
   font-family: "Bebas Neue", Roboto, Helvetica, Arial, sans-serif;
 }
+
+
+html[data-text-size="pequeno"] .home-greeting { font-size: 38px !important; }
+html[data-text-size="pequeno"] .home-section-title { font-size: 30px !important; }
+html[data-text-size="pequeno"] .note-card-title { font-size: 15px !important; }
+html[data-text-size="pequeno"] .note-card-snippet { font-size: 12px !important; }
+html[data-text-size="pequeno"] .note-card-date { font-size: 10px !important; }
+html[data-text-size="pequeno"] .side-nav-item { font-size: 16px !important; }
+html[data-text-size="pequeno"] .side-recent-itens { font-size: 12px !important; }
+html[data-text-size="pequeno"] .side-history-header { font-size: 16px !important; }
+html[data-text-size="pequeno"] .side-config span { font-size: 16px !important; }
+html[data-text-size="pequeno"] .side-user span { font-size: 16px !important; }
+html[data-text-size="pequeno"] .editor-content-textarea { font-size: 14px !important; }
+html[data-text-size="pequeno"] .editor-title-input { font-size: 26px !important; }
+html[data-text-size="pequeno"] .editor-description-input { font-size: 14px !important; }
+
+/* --- GRANDE --- */
+html[data-text-size="grande"] .home-greeting { font-size: 56px !important; }
+html[data-text-size="grande"] .home-section-title { font-size: 46px !important; }
+html[data-text-size="grande"] .note-card-title { font-size: 22px !important; }
+html[data-text-size="grande"] .note-card-snippet { font-size: 17px !important; }
+html[data-text-size="grande"] .note-card-date { font-size: 14px !important; }
+html[data-text-size="grande"] .side-nav-item { font-size: 26px !important; }
+html[data-text-size="grande"] .side-recent-itens { font-size: 20px !important; }
+html[data-text-size="grande"] .side-history-header { font-size: 26px !important; }
+html[data-text-size="grande"] .side-config span { font-size: 24px !important; }
+html[data-text-size="grande"] .side-user span { font-size: 24px !important; }
+html[data-text-size="grande"] .editor-content-textarea { font-size: 20px !important; }
+html[data-text-size="grande"] .editor-title-input { font-size: 38px !important; }
+html[data-text-size="grande"] .editor-description-input { font-size: 20px !important; }
+
+html[data-reduce-animations="true"] *,
+html[data-reduce-animations="true"] *::before,
+html[data-reduce-animations="true"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+}

@@ -1447,4 +1447,24 @@
     color: #ff6666;
     background-color: rgba(255, 77, 77, 0.1);
 }
-
+
+
+.daily-quote-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.daily-quote-text{
+    color: #8E8E93;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-style: italic;
+    max-width: 600px;
+    line-height: 1.4;
+    letter-spacing: 0.3px;
+    animation: fadeIn 0.8s ease-in-out;
+}

@@ -32,10 +32,21 @@ function Home() {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('');
-  const [textSize, setTextSize] = useState('MEDIO')
-  const [reduceAnimations, setReduceAnimations] = useState(false);
-  const [showDailyQuote, setShowDailyQuote] = useState(true);
+  const [reduceAnimations, setReduceAnimations] = useState(() => localStorage.getItem('reduce-animations') === 'true');
+  const [showDailyQuote, setShowDailyQuote] = useState(() => localStorage.getItem('show-daily-quote') !== 'false');
+  const [dailyQuote, setDailyQuote] = useState('');
   const [notificationFrequency, setNotificationFrequency] = useState('ÚNICA');
+
+  const FRASES_DO_DIA = [
+    '"A única maneira de fazer um excelente trabalho é amar o que você faz." — Steve Jobs',
+    '"Não importa o quão devagar você vá, desde que você não pare." — Confúcio',
+    '"O sucesso é a soma de pequenos esforços repetidos dia após dia." — Robert Collier',
+    '"A persistência é o caminho do êxito." — Charles Chaplin',
+    '"O melhor modo de prever o futuro é criá-lo." — Peter Drucker',
+    '"Grandes mentes discutem ideias; mentes médias discutem eventos; mentes pequenas discutem pessoas." — Eleanor Roosevelt',
+    '"A mente que se abre a uma nova ideia jamais voltará ao seu tamanho original." — Albert Einstein',
+    '"Você tem poder sobre sua mente, não sobre eventos externos. Perceba isso, e encontrará força." — Marco Aurélio',
+  ];
   const [historyFilter, setHistoryFilter] = useState('ACESSO');
   const [managerFilter, setManagerFilter] = useState('ANOTAÇÕES')
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +70,28 @@ function Home() {
   const Navigate = useNavigate();
 
   const CORES_ETIQUETA = ['#007AFF', '#34C759', '#FF3B30', '#AF52DE', '#FF9500', '#FF2D55', '#5AC8FA'];
+
+
+  const [textSize, setTextSize] = useState(() => localStorage.getItem('text-size') || "MÉDIO");
+  
+
+  const handleTextSizeChange = (size) => {
+    setTextSize(size);
+    localStorage.setItem('text-size', size);
+    const normalizedSize = size.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    document.documentElement.setAttribute('data-text-size', normalizedSize);
+  }
+
+  const handleReduceAnimationsChange = (val) => {
+    setReduceAnimations(val);
+    localStorage.setItem('reduce-animations', val.toString());
+    document.documentElement.setAttribute('data-reduce-animations', val.toString());
+  };
+
+  const handleShowDailyQuoteChange = (val) => {
+    setShowDailyQuote(val);
+    localStorage.setItem('show-daily-quote', val.toString());
+  };
 
 
   const filteredNotes = notes.filter(note => {
@@ -336,6 +369,10 @@ function Home() {
   }, [activeModal]);
 
   useEffect(() => {
+    const day = new Date().getDate();
+    const index = day % FRASES_DO_DIA.length;
+    setDailyQuote(FRASES_DO_DIA[index]);
+
     const getGreeting = () => {
       const hour = new Date().getHours();
       if (hour < 12) {
@@ -388,14 +425,13 @@ function Home() {
         })
         .catch(error => console.error("Erro ao carregar eventos: ", error));
 
-      // Carrega as etiquetas do usuário para uso global no Home
+
       api.get(`api/etiquetas/${userId}/`)
         .then(response => setEtiquetas(response.data))
         .catch(error => console.error("Erro ao carregar etiquetas: ", error));
     }
   }, []);
 
-  // Cria uma nova etiqueta e atualiza o estado global
   const handleCriarEtiqueta = () => {
     const userId = localStorage.getItem('user_id');
     if (!novaEtiquetaNome.trim() || !userId) return;
@@ -408,18 +444,17 @@ function Home() {
       .catch(error => console.error('Erro ao criar etiqueta:', error));
   };
 
-  // Exclui uma etiqueta e remove do estado global
+
   const handleExcluirEtiqueta = (etiquetaId) => {
     api.delete(`api/etiqueta/${etiquetaId}/`)
       .then(() => {
         setEtiquetas(prev => prev.filter(e => e.id !== etiquetaId));
-        // Remove também da seleção ativa caso estivesse selecionada
+
         setEtiquetasSelecionadas(prev => prev.filter(id => id !== etiquetaId));
       })
       .catch(error => console.error('Erro ao excluir etiqueta:', error));
   };
 
-  // Liga/desliga a seleção de uma etiqueta na criação de nota
   const toggleEtiquetaSelecionada = (etiquetaId) => {
     setEtiquetasSelecionadas(prev =>
       prev.includes(etiquetaId)
@@ -445,8 +480,11 @@ function Home() {
       />
 
       <main className="home-content">
-        <div className="home-header">
+        <div className="daily-quote-container">
           <h1 className="home-greeting">{greeting.toUpperCase()}, {userName.toUpperCase()}</h1>
+          {showDailyQuote && (
+            <p className="daily-quote-text">{dailyQuote}</p>
+          )}
         </div>
 
         <div className="home-section">
@@ -1004,7 +1042,7 @@ function Home() {
                       key={size}
                       type="button"
                       className={textSize === size ? 'active' : ''}
-                      onClick={() => setTextSize(size)}
+                      onClick={() => handleTextSizeChange(size)}
                     >
                       {size}
                     </button>
@@ -1020,7 +1058,7 @@ function Home() {
                 </div>
                 <div
                   className={`toggle-switch ${reduceAnimations ? 'active' : ''}`}
-                  onClick={() => setReduceAnimations(!reduceAnimations)}
+                  onClick={() => handleReduceAnimationsChange(!reduceAnimations)}
                 >
                   <div className='toggle-knob'></div>
                 </div>
@@ -1034,7 +1072,7 @@ function Home() {
                 </div>
                 <div
                   className={`toggle-switch ${showDailyQuote ? 'active' : ''}`}
-                  onClick={() => setShowDailyQuote(!showDailyQuote)}
+                  onClick={() => handleShowDailyQuoteChange(!showDailyQuote)}
                 >
                   <div className='toggle-knob'></div>
                 </div>
